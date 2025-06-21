@@ -22,13 +22,21 @@ APlayerCharacter::APlayerCharacter() {
 	CameraComp->SetupAttachment(SpringArmComp);
 	CameraComp->SetRelativeRotation(FRotator(0.f, 0.f, 0.f));
 
-	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate              = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->bConstrainToPlane         = false;
 	GetCharacterMovement()->bSnapToPlaneAtStart       = false;
+
+	GetCharacterMovement()->JumpZVelocity = 700.f;
+	GetCharacterMovement()->AirControl = 0.35f;
+	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
+	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
+	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 	
+	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationRoll = false;
 	//PrimaryActorTick.bCanEverTick          = true;
 	//PrimaryActorTick.bStartWithTickEnabled = true;
 }

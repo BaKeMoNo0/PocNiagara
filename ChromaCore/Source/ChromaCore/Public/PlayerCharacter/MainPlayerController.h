@@ -3,8 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EnhancedInputSubsystemInterface.h"
+#include "InputAction.h"
 #include "PlayerCharacter.h"
-#include "ChromaCore/ChromaCoreCharacter.h"
 #include "GameFramework/PlayerController.h"
 #include "MainPlayerController.generated.h"
 
