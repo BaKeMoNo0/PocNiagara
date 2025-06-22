@@ -46,6 +46,22 @@ void APlayerCharacter::BeginPlay() {
 	Super::BeginPlay();
 	
 	PlayerMovementComponent = FindComponentByClass<UPlayerMovementComponent>();
+
+	
+	if (CrowdActorClass) {
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+
+		FVector SpawnLocation = GetActorLocation() + FVector(-200, 200, 150.f);
+		FRotator SpawnRotation = FRotator::ZeroRotator;
+
+		ACrowdActor* SpawnedCrowd = GetWorld()->SpawnActor<ACrowdActor>(CrowdActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+
+		if (SpawnedCrowd) {
+			SpawnedCrowd->TargetActor = this;
+		}
+	}
+
 }
 
 UPlayerMovementComponent* APlayerCharacter::GetPlayerMovementComponent() const{ return PlayerMovementComponent;}

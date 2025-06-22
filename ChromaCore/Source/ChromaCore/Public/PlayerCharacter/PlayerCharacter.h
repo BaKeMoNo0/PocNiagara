@@ -6,6 +6,7 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Niagara/CrowdActor.h"
 #include "PlayerCharacter.generated.h"
 
 class UPlayerMovementComponent;
@@ -25,6 +26,9 @@ public:
 
 	UPROPERTY()
 	UPlayerMovementComponent *PlayerMovementComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TSubclassOf<ACrowdActor> CrowdActorClass;
 	
 protected:
 	virtual void BeginPlay() override;
