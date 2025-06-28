@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerCharacter/Component/PlayerMovementComponent.h"
+#include "PlayerCharacter/Component/PlayerPingComponent.h"
 
 APlayerCharacter::APlayerCharacter() {
 	GetCapsuleComponent()->InitCapsuleSize(34.f, 88.f);
@@ -46,23 +47,28 @@ void APlayerCharacter::BeginPlay() {
 	Super::BeginPlay();
 	
 	PlayerMovementComponent = FindComponentByClass<UPlayerMovementComponent>();
+	PlayerPingComponent = FindComponentByClass<UPlayerPingComponent>();
 
 	
-	if (CrowdActorClass) {
+	if (!SpawnedCrowdActor && CrowdActorClass) {
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
-		FVector SpawnLocation = GetActorLocation() + FVector(-200, 200, 150.f);
+		FVector SpawnLocation = GetActorLocation() + FVector(-100.f, -90.f, 100.f);
 		FRotator SpawnRotation = FRotator::ZeroRotator;
 
-		ACrowdActor* SpawnedCrowd = GetWorld()->SpawnActor<ACrowdActor>(CrowdActorClass, SpawnLocation, SpawnRotation, SpawnParams);
+		SpawnedCrowdActor = GetWorld()->SpawnActor<ACrowdActor>(CrowdActorClass, SpawnLocation, SpawnRotation, SpawnParams);
 
-		if (SpawnedCrowd) {
-			SpawnedCrowd->TargetActor = this;
+		if (SpawnedCrowdActor) {
+			SpawnedCrowdActor->SetTargetActor(this);
 		}
 	}
 
 }
 
 UPlayerMovementComponent* APlayerCharacter::GetPlayerMovementComponent() const{ return PlayerMovementComponent;}
+UPlayerPingComponent* APlayerCharacter::GetPlayerPingComponent() const { return PlayerPingComponent; }
+
+ACrowdActor* APlayerCharacter::GetCrowdActor() const { return SpawnedCrowdActor;}
+
 

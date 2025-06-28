@@ -5,12 +5,15 @@
 
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Blueprint/UserWidget.h"
 #include "PlayerCharacter/Component/PlayerMovementComponent.h"
+#include "PlayerCharacter/Component/PlayerPingComponent.h"
 
 void AMainPlayerController::BeginPlay() {
 	Super::BeginPlay();
 
 	ControlledCharacter = Cast<APlayerCharacter>(GetPawn());
+	InitWidget();
 }
 
 void AMainPlayerController::SetupInputComponent() {
@@ -29,8 +32,25 @@ void AMainPlayerController::SetupInputComponent() {
 
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallLook);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallJump);
+
+		EnhancedInputComponent->BindAction(PingAction, ETriggerEvent::Started, this, &AMainPlayerController::CallStartAiming);
+		EnhancedInputComponent->BindAction(PingAction, ETriggerEvent::Completed, this, &AMainPlayerController::CallStopAiming);
+		EnhancedInputComponent->BindAction(CallBackAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallBackActor);
 	}
 }
+
+
+void AMainPlayerController::InitWidget() {
+	if (MainMenuWidgetClass) {
+		if (UUserWidget *MainMenuWidget = CreateWidget<UUserWidget>(this, MainMenuWidgetClass)) {
+			if (MainMenuWidget) {
+				MainMenuWidget->AddToViewport();
+				MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
+			}
+		}
+	}
+}
+
 
 void AMainPlayerController::CallMove(const FInputActionValue &Value) {
 	if (ControlledCharacter && ControlledCharacter->GetPlayerMovementComponent()) {
@@ -62,4 +82,21 @@ void AMainPlayerController::CallJump() {
 	if (ControlledCharacter && ControlledCharacter->GetPlayerMovementComponent()) {
 		ControlledCharacter->GetPlayerMovementComponent()->CallJump();
 	}
+}
+
+
+void AMainPlayerController::CallStartAiming() {
+	if (ControlledCharacter && ControlledCharacter->GetPlayerPingComponent()) {
+		ControlledCharacter->GetPlayerPingComponent()->StartAiming();
+	}
+}
+
+void AMainPlayerController::CallStopAiming() {
+	if (ControlledCharacter && ControlledCharacter->GetPlayerPingComponent()) {
+		ControlledCharacter->GetPlayerPingComponent()->StopAiming();
+	}
+}
+
+void AMainPlayerController::CallBackActor() {
+	if (ControlledCharacter) ControlledCharacter->GetCrowdActor()->SetTargetActor(ControlledCharacter);
 }

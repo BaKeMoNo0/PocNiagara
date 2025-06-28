@@ -19,7 +19,7 @@ ACrowdActor::ACrowdActor() {
 	NiagaraSystem = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraSystem"));
 	NiagaraSystem->SetupAttachment(SphereMesh);
 
-	Offset = FVector(-150.f, 80.f, 100.f);
+	Offset = FVector(-100.f, -90.f, 100.f);
 }
 
 
@@ -31,11 +31,31 @@ void ACrowdActor::BeginPlay() {
 void ACrowdActor::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
+	FVector CurrentLocation = GetActorLocation();
+	FVector Destination;
+	float Speed = FollowSpeed;
+	
 	if (TargetActor) {
-		FVector TargetLocation = TargetActor->GetActorLocation() + Offset;
-		FVector CurrentLocation = GetActorLocation();
-		FVector NewLocation = FMath::VInterpTo(CurrentLocation, TargetLocation, DeltaTime, FollowSpeed);
-		SetActorLocation(NewLocation);
+		Destination = TargetActor->GetActorLocation() + Offset;
+	} else if (bShouldMove) {
+		Destination = TargetLocation;
+		Speed /= 2.f;
+	} else {
+		return;
 	}
+
+	FVector NewLocation = FMath::VInterpTo(CurrentLocation, Destination, DeltaTime, Speed);
+	SetActorLocation(NewLocation);
+
 }
+
+void ACrowdActor::MoveTo(const FVector& NewTargetLocation) {
+	TargetLocation = NewTargetLocation;
+	bShouldMove = true;
+	//SetActorLocation(NewLocation);
+}
+
+AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
+
+void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
 

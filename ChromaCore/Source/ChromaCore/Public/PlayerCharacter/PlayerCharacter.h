@@ -9,6 +9,7 @@
 #include "Niagara/CrowdActor.h"
 #include "PlayerCharacter.generated.h"
 
+class UPlayerPingComponent;
 class UPlayerMovementComponent;
 
 UCLASS()
@@ -27,12 +28,19 @@ public:
 	UPROPERTY()
 	UPlayerMovementComponent *PlayerMovementComponent;
 
+	UPROPERTY()
+	UPlayerPingComponent *PlayerPingComponent;
+
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 	TSubclassOf<ACrowdActor> CrowdActorClass;
+	UPROPERTY()
+	ACrowdActor* SpawnedCrowdActor;
 	
 protected:
 	virtual void BeginPlay() override;
 
 public:
 	UPlayerMovementComponent *GetPlayerMovementComponent() const;
+	UPlayerPingComponent *GetPlayerPingComponent() const;
+	ACrowdActor *GetCrowdActor() const;
 };

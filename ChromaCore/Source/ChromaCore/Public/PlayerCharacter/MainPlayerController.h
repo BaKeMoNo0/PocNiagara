@@ -23,8 +23,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
-	//UPROPERTY(EditAnywhere, Category = "UI")
-	//TSubclassOf<UUserWidget> MainMenuWidgetClass;
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	//UMainMenuWidget *MainMenuWidget;
 
 	// Binding function for movement
@@ -42,10 +42,23 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction *JumpAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction *PingAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction *CallBackAction;
+
 	
 	void CallMove(const FInputActionValue &Value);
 	void CallRun();
 	void CallStopRunning();
 	void CallJump();
 	void CallLook(const FInputActionValue &Value);
+	void CallStartAiming();
+	void CallStopAiming();
+	void CallBackActor();
+	
+	void InitWidget();
+
 };
