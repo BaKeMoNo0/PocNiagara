@@ -8,6 +8,7 @@
 #include "Blueprint/UserWidget.h"
 #include "PlayerCharacter/Component/PlayerMovementComponent.h"
 #include "PlayerCharacter/Component/PlayerPingComponent.h"
+#include "PlayerCharacter/Component/PlayerSoundComponent.h"
 
 void AMainPlayerController::BeginPlay() {
 	Super::BeginPlay();
@@ -37,6 +38,7 @@ void AMainPlayerController::SetupInputComponent() {
 		EnhancedInputComponent->BindAction(PingAction, ETriggerEvent::Completed, this, &AMainPlayerController::CallStopAiming);
 		EnhancedInputComponent->BindAction(CallBackAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallBackActor);
 		EnhancedInputComponent->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &AMainPlayerController::AdjustPingDistance);
+		EnhancedInputComponent->BindAction(SoundAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallSound);
 	}
 }
 
@@ -100,6 +102,10 @@ void AMainPlayerController::CallStopAiming() {
 
 void AMainPlayerController::CallBackActor() {
 	if (ControlledCharacter) ControlledCharacter->GetCrowdActor()->SetTargetActor(ControlledCharacter);
+}
+
+void AMainPlayerController::CallSound() {
+	if (ControlledCharacter) ControlledCharacter->GetPlayerSoundComponent()->CallSound();
 }
 
 void AMainPlayerController::AdjustPingDistance(const FInputActionValue& Value) {

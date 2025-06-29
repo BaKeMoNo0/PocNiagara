@@ -9,6 +9,7 @@
 #include "Niagara/CrowdActor.h"
 #include "PlayerCharacter.generated.h"
 
+class UPlayerSoundComponent;
 class UPlayerPingComponent;
 class UPlayerMovementComponent;
 
@@ -19,28 +20,35 @@ class CHROMACORE_API APlayerCharacter : public ACharacter {
 public:
 	APlayerCharacter();
 
+	
+protected:
+	virtual void BeginPlay() override;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USpringArmComponent *SpringArmComp;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UCameraComponent *CameraComp;
 
 	UPROPERTY()
 	UPlayerMovementComponent *PlayerMovementComponent;
-
 	UPROPERTY()
 	UPlayerPingComponent *PlayerPingComponent;
+	UPROPERTY()
+	UPlayerSoundComponent *PlayerSoundComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 	TSubclassOf<ACrowdActor> CrowdActorClass;
 	UPROPERTY()
 	ACrowdActor* SpawnedCrowdActor;
 	
-protected:
-	virtual void BeginPlay() override;
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
+    UAudioComponent* AudioComponent;
+	
 public:
 	UPlayerMovementComponent *GetPlayerMovementComponent() const;
 	UPlayerPingComponent *GetPlayerPingComponent() const;
+	UPlayerSoundComponent *GetPlayerSoundComponent() const;
+	
+	UAudioComponent *GetAudioComponent() const;
 	ACrowdActor *GetCrowdActor() const;
 };

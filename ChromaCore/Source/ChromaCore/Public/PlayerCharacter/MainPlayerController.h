@@ -51,6 +51,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction *ScrollAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction *SoundAction;
 	
 	void CallMove(const FInputActionValue &Value);
 	void CallRun();
@@ -60,6 +63,7 @@ protected:
 	void CallStartAiming();
 	void CallStopAiming();
 	void CallBackActor();
+	void CallSound();
 	void AdjustPingDistance(const FInputActionValue& Value);
 	
 	void InitWidget();

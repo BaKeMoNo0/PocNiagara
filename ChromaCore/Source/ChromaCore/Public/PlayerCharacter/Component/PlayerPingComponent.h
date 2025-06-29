@@ -25,7 +25,7 @@ protected:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UPROPERTY(EditAnywhere, Category = "Ping")
-	float MaxPingDistance = 1500.f;
+	float MaxPingDistance = 1000.f;
 
 	UPROPERTY(EditAnywhere, Category = "Ping")
 	float MinPingDistance = 100.f;

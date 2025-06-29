@@ -3,10 +3,12 @@
 
 #include "PlayerCharacter/PlayerCharacter.h"
 
+#include "Components/AudioComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "PlayerCharacter/Component/PlayerMovementComponent.h"
 #include "PlayerCharacter/Component/PlayerPingComponent.h"
+#include "PlayerCharacter/Component/PlayerSoundComponent.h"
 
 APlayerCharacter::APlayerCharacter() {
 	GetCapsuleComponent()->InitCapsuleSize(34.f, 88.f);
@@ -34,6 +36,10 @@ APlayerCharacter::APlayerCharacter() {
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
+
+	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("AudioComponent"));
+	AudioComponent->SetupAttachment(RootComponent);
+	AudioComponent->bAutoActivate = false;
 	
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -48,7 +54,7 @@ void APlayerCharacter::BeginPlay() {
 	
 	PlayerMovementComponent = FindComponentByClass<UPlayerMovementComponent>();
 	PlayerPingComponent = FindComponentByClass<UPlayerPingComponent>();
-
+	PlayerSoundComponent = FindComponentByClass<UPlayerSoundComponent>();
 	
 	if (!SpawnedCrowdActor && CrowdActorClass) {
 		FActorSpawnParameters SpawnParams;
@@ -68,7 +74,9 @@ void APlayerCharacter::BeginPlay() {
 
 UPlayerMovementComponent* APlayerCharacter::GetPlayerMovementComponent() const{ return PlayerMovementComponent;}
 UPlayerPingComponent* APlayerCharacter::GetPlayerPingComponent() const { return PlayerPingComponent; }
+UPlayerSoundComponent* APlayerCharacter::GetPlayerSoundComponent() const { return PlayerSoundComponent;}
 
+UAudioComponent* APlayerCharacter::GetAudioComponent() const { return AudioComponent;}
 ACrowdActor* APlayerCharacter::GetCrowdActor() const { return SpawnedCrowdActor;}
 
 

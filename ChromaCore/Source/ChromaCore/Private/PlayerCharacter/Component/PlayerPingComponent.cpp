@@ -87,7 +87,7 @@ void UPlayerPingComponent::TraceFromCrosshair() {
 
 		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params)) {
 			const FVector SurfaceNormal = Hit.Normal;
-			const float OffsetDistance = 10.f;
+			const float OffsetDistance = 20.f;
 			LastValidLocation = Hit.ImpactPoint + SurfaceNormal * OffsetDistance;
 		} else {
 			LastValidLocation = End;
