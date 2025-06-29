@@ -3,6 +3,7 @@
 
 #include "PlayerCharacter/Component/PlayerPingComponent.h"
 
+#include "Niagara/PingMarker.h"
 #include "PlayerCharacter/PlayerCharacter.h"
 
 
@@ -19,7 +20,6 @@ void UPlayerPingComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 }
 
 void UPlayerPingComponent::CallPing() {
-	UE_LOG(LogTemp, Warning, TEXT("Ping pressed - aiming: %s"), bIsAiming ? TEXT("true") : TEXT("false"));
 	if (bIsAiming){
 		StartAiming();
 	} else{
@@ -31,6 +31,24 @@ void UPlayerPingComponent::CallPing() {
 void UPlayerPingComponent::StartAiming() {
 	bIsAiming = true;
 	SetComponentTickEnabled(true);
+	
+	if (!IsValid(ActivePingMarker) && PingMarkerClass) {
+		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = GetOwner();
+
+		ActivePingMarker = GetWorld()->SpawnActor<APingMarker>(
+			PingMarkerClass,
+			LastValidLocation,
+			FRotator::ZeroRotator,
+			SpawnParams
+		);
+
+		if (PlayerCharacter && PlayerCharacter->GetCrowdActor()) {
+			PlayerCharacter->GetCrowdActor()->SetPingMarker(ActivePingMarker);
+		}
+	}
 }
 
 void UPlayerPingComponent::StopAiming() {
@@ -55,15 +73,32 @@ void UPlayerPingComponent::TraceFromCrosshair() {
 	FVector WorldOrigin, WorldDirection;
 	if (PC->DeprojectScreenPositionToWorld(ScreenCenter.X, ScreenCenter.Y, WorldOrigin, WorldDirection)) {
 		FVector Start = WorldOrigin;
-		FVector End = Start + WorldDirection * 1000.f;
+		FVector End = Start + WorldDirection * CurrentPingDistance;
 
 		FHitResult Hit;
-		GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility);
-		DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 0.1f, 0, 1.0f);
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(GetOwner());
 		
-		if (Hit.bBlockingHit) {
-			LastValidLocation = Hit.Location;
-			DrawDebugSphere(GetWorld(), Hit.Location, 8.f, 12, FColor::Red, false, 1.f);
+		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+		if (IsValid(ActivePingMarker) && PlayerCharacter && PlayerCharacter->GetCrowdActor()) {
+			Params.AddIgnoredActor(ActivePingMarker);
+			Params.AddIgnoredActor(PlayerCharacter->GetCrowdActor());
+		}
+
+		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params)) {
+			const FVector SurfaceNormal = Hit.Normal;
+			const float OffsetDistance = 10.f;
+			LastValidLocation = Hit.ImpactPoint + SurfaceNormal * OffsetDistance;
+		} else {
+			LastValidLocation = End;
+		}
+
+		if (IsValid(ActivePingMarker)) {
+			ActivePingMarker->SetActorLocation(LastValidLocation);
 		}
 	}
+}
+
+void UPlayerPingComponent::AdjustPingDistance(float AxisValue) {
+	CurrentPingDistance = FMath::Clamp(CurrentPingDistance + AxisValue * 50.f, MinPingDistance, MaxPingDistance);
 }

@@ -7,6 +7,7 @@
 #include "CrowdActor.generated.h"
 
 
+class APingMarker;
 class UNiagaraComponent;
 
 UCLASS()
@@ -36,9 +37,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UNiagaraComponent* NiagaraSystem;
 
+	UPROPERTY()
+	APingMarker* PingMarker = nullptr;
+
 public:
 	void MoveTo(const FVector& NewTargetLocation);
 
 	AActor* GetTargetActor();
 	void SetTargetActor(AActor* NewTarget);
+	void SetPingMarker(APingMarker* NewPingMarker);
 };

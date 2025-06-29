@@ -4,9 +4,9 @@
 #include "Niagara/CrowdActor.h"
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Niagara/PingMarker.h"
 
 
-// Sets default values
 ACrowdActor::ACrowdActor() {
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -44,6 +44,18 @@ void ACrowdActor::Tick(float DeltaTime) {
 		return;
 	}
 
+	if (!TargetActor && bShouldMove) {
+		float Distance = FVector::Dist(CurrentLocation, Destination);
+		if (Distance < 10.f) {
+			bShouldMove = false;
+
+			if (PingMarker && !PingMarker->IsPendingKillPending()) {
+				PingMarker->Destroy();
+				PingMarker = nullptr;
+			}
+		}
+	}
+
 	FVector NewLocation = FMath::VInterpTo(CurrentLocation, Destination, DeltaTime, Speed);
 	SetActorLocation(NewLocation);
 
@@ -52,10 +64,10 @@ void ACrowdActor::Tick(float DeltaTime) {
 void ACrowdActor::MoveTo(const FVector& NewTargetLocation) {
 	TargetLocation = NewTargetLocation;
 	bShouldMove = true;
-	//SetActorLocation(NewLocation);
 }
 
 AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
 
 void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
+void ACrowdActor::SetPingMarker(APingMarker* NewPingMarker) { PingMarker = NewPingMarker; }
 

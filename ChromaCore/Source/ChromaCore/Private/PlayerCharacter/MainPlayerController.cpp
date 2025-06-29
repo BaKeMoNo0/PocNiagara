@@ -36,6 +36,7 @@ void AMainPlayerController::SetupInputComponent() {
 		EnhancedInputComponent->BindAction(PingAction, ETriggerEvent::Started, this, &AMainPlayerController::CallStartAiming);
 		EnhancedInputComponent->BindAction(PingAction, ETriggerEvent::Completed, this, &AMainPlayerController::CallStopAiming);
 		EnhancedInputComponent->BindAction(CallBackAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallBackActor);
+		EnhancedInputComponent->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &AMainPlayerController::AdjustPingDistance);
 	}
 }
 
@@ -99,4 +100,10 @@ void AMainPlayerController::CallStopAiming() {
 
 void AMainPlayerController::CallBackActor() {
 	if (ControlledCharacter) ControlledCharacter->GetCrowdActor()->SetTargetActor(ControlledCharacter);
+}
+
+void AMainPlayerController::AdjustPingDistance(const FInputActionValue& Value) {
+	if (ControlledCharacter && ControlledCharacter->GetPlayerPingComponent()) {
+		ControlledCharacter->GetPlayerPingComponent()->AdjustPingDistance(Value.Get<float>());
+	}
 }
