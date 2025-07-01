@@ -53,6 +53,7 @@ void ACrowdActor::Tick(float DeltaTime) {
 				PingMarker->Destroy();
 				PingMarker = nullptr;
 			}
+			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), 1.0f); 
 		}
 	}
 
