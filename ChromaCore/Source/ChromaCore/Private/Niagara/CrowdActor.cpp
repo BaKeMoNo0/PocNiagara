@@ -60,7 +60,7 @@ void ACrowdActor::Tick(float DeltaTime) {
 
 		if (bIsSlowingDown) {
 			UE_LOG(LogTemp, Warning, TEXT("isSlowing"));
-			CurrentSpeedLimit = FMath::FInterpTo(CurrentSpeedLimit, 0.0f, DeltaTime, 57);
+			CurrentSpeedLimit = FMath::FInterpTo(CurrentSpeedLimit, 0.0f, DeltaTime, 45);
 			NiagaraSystem->SetFloatParameter(FName("User.SpeedLimit"), CurrentSpeedLimit);
 
 			if (CurrentSpeedLimit <= 50.f) {
