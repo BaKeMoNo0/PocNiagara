@@ -44,16 +44,30 @@ void ACrowdActor::Tick(float DeltaTime) {
 		return;
 	}
 
+	UE_LOG(LogTemp, Warning, TEXT("no"));
 	if (!TargetActor && bShouldMove) {
 		float Distance = FVector::Dist(CurrentLocation, Destination);
-		if (Distance < 10.f) {
-			bShouldMove = false;
+		UE_LOG(LogTemp, Warning, TEXT("why"));
+		
+		if (Distance < 10.f && !bIsSlowingDown)  bIsSlowingDown = true;
+		
+		UE_LOG(LogTemp, Warning, TEXT("here"));
+		
+		if (PingMarker && !PingMarker->IsPendingKillPending()) {
+			PingMarker->Destroy();
+			PingMarker = nullptr;
+		}
 
-			if (PingMarker && !PingMarker->IsPendingKillPending()) {
-				PingMarker->Destroy();
-				PingMarker = nullptr;
+		if (bIsSlowingDown) {
+			UE_LOG(LogTemp, Warning, TEXT("isSlowing"));
+			CurrentSpeedLimit = FMath::FInterpTo(CurrentSpeedLimit, 0.0f, DeltaTime, 57);
+			NiagaraSystem->SetFloatParameter(FName("User.SpeedLimit"), CurrentSpeedLimit);
+
+			if (CurrentSpeedLimit <= 50.f) {
+				SetAllStrengthToZero();
+				bShouldMove = false;
+				bIsSlowingDown = false;
 			}
-			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), 1.0f); 
 		}
 	}
 
@@ -63,12 +77,45 @@ void ACrowdActor::Tick(float DeltaTime) {
 }
 
 void ACrowdActor::MoveTo(const FVector& NewTargetLocation) {
+	SetAllStrengthToInitialValue();
 	TargetLocation = NewTargetLocation;
 	bShouldMove = true;
 }
 
+void ACrowdActor::SetAllStrengthToInitialValue(){
+	NiagaraSystem->SetFloatParameter(FName("User.SpeedLimit"), InitialSpeedLimit);
+	NiagaraSystem->SetFloatParameter(FName("User.DragStrength"), InitialDragStrength);
+	NiagaraSystem->SetFloatParameter(FName("User.AttractionStrength"), InitialAttractionStrength);
+	NiagaraSystem->SetVectorParameter(FName("User.GravityStrength"), InitialGravityStrength);
+	NiagaraSystem->SetFloatParameter(FName("User.VortexStrength"), InitialVortexStrength);
+	NiagaraSystem->SetFloatParameter(FName("User.NoiseStrength1"), InitialNoiseStrength1);
+	NiagaraSystem->SetFloatParameter(FName("User.NoiseStrength2"), InitialNoiseStrength2);
+}
+
+void ACrowdActor::SetAllStrengthToZero() {
+	NiagaraSystem->SetFloatParameter(FName("User.DragStrength"), 0.0f);
+	NiagaraSystem->SetFloatParameter(FName("User.AttractionStrength"), 0.0f);
+	NiagaraSystem->SetVectorParameter(FName("User.GravityStrength"), FVector(0.0f, 0.0f, 0.0f));
+	NiagaraSystem->SetFloatParameter(FName("User.VortexStrength"), 0.0f);
+	NiagaraSystem->SetFloatParameter(FName("User.NoiseStrength1"), 0.0f);
+	NiagaraSystem->SetFloatParameter(FName("User.NoiseStrength2"), 0.0f);
+}
+
 AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
+UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
+
+/*
+float ACrowdActor::GetIniatialDragStrength() const { return InitialDragStrength; }
+float ACrowdActor::GetInitialAttractionStrength() const { return InitialAttractionStrength; }
+FVector ACrowdActor::GetInitialGravityStrength() const { return InitialGravityStrength; }
+float ACrowdActor::GetInitialVortexStrength() const { return InitialVortexStrength; }
+float ACrowdActor::GetInitialNoiseStrength1() const { return InitialNoiseStrength1; }
+float ACrowdActor::GetInitialNoiseStrength2() const { return InitialNoiseStrength2; }
+float ACrowdActor::GetInitialSpeedLimit() const { return InitialSpeedLimit; }
+*/
+
 
 void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
 void ACrowdActor::SetPingMarker(APingMarker* NewPingMarker) { PingMarker = NewPingMarker; }
+
 

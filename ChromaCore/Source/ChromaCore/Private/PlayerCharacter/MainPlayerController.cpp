@@ -6,6 +6,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
+#include "NiagaraComponent.h"
 #include "PlayerCharacter/Component/PlayerMovementComponent.h"
 #include "PlayerCharacter/Component/PlayerPingComponent.h"
 #include "PlayerCharacter/Component/PlayerSoundComponent.h"
@@ -101,7 +102,10 @@ void AMainPlayerController::CallStopAiming() {
 }
 
 void AMainPlayerController::CallBackActor() {
-	if (ControlledCharacter) ControlledCharacter->GetCrowdActor()->SetTargetActor(ControlledCharacter);
+	if (ControlledCharacter) {
+		ControlledCharacter->GetCrowdActor()->SetTargetActor(ControlledCharacter);
+		ControlledCharacter->GetCrowdActor()->SetAllStrengthToInitialValue();
+	}
 }
 
 void AMainPlayerController::CallSound() {
