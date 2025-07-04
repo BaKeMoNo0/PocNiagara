@@ -104,7 +104,8 @@ void AMainPlayerController::CallStopAiming() {
 void AMainPlayerController::CallBackActor() {
 	if (ControlledCharacter) {
 		ControlledCharacter->GetCrowdActor()->SetTargetActor(ControlledCharacter);
-		ControlledCharacter->GetCrowdActor()->SetAllStrengthToInitialValue();
+		ControlledCharacter->GetCrowdActor()->SetBlendAlphaTarget(0.0);
+		//ControlledCharacter->GetCrowdActor()->SetAllStrengthToInitialValue();
 	}
 }
 

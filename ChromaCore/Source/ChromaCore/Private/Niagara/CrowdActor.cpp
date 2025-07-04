@@ -44,14 +44,10 @@ void ACrowdActor::Tick(float DeltaTime) {
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("no"));
 	if (!TargetActor && bShouldMove) {
 		float Distance = FVector::Dist(CurrentLocation, Destination);
-		UE_LOG(LogTemp, Warning, TEXT("why"));
 		
-		if (Distance < 10.f && !bIsSlowingDown)  bIsSlowingDown = true;
-		
-		UE_LOG(LogTemp, Warning, TEXT("here"));
+		if (Distance <= 1.0f && !bIsSlowingDown)  bIsSlowingDown = true;
 		
 		if (PingMarker && !PingMarker->IsPendingKillPending()) {
 			PingMarker->Destroy();
@@ -59,15 +55,26 @@ void ACrowdActor::Tick(float DeltaTime) {
 		}
 
 		if (bIsSlowingDown) {
-			UE_LOG(LogTemp, Warning, TEXT("isSlowing"));
-			CurrentSpeedLimit = FMath::FInterpTo(CurrentSpeedLimit, 0.0f, DeltaTime, 45);
-			NiagaraSystem->SetFloatParameter(FName("User.SpeedLimit"), CurrentSpeedLimit);
+			//CurrentSpeedLimit = FMath::FInterpTo(CurrentSpeedLimit, 0.0f, DeltaTime, 45);
+			//NiagaraSystem->SetFloatParameter(FName("User.SpeedLimit"), CurrentSpeedLimit);
+			SetBlendAlphaTarget(1.0f);
+			CurrentBlendAlpha = FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.25);
+			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), CurrentBlendAlpha);
 
+			NiagaraSystem->SetVectorParameter(FName("User.SphereBlendAlpha"), SphereMesh->GetComponentLocation());
+			UE_LOG(LogTemp, Warning, TEXT("spherepos -> x: %f, y: %f, z: %f"), SphereMesh->GetComponentLocation().X, SphereMesh->GetComponentLocation().Y, SphereMesh->GetComponentLocation().Z);
+
+			if (CurrentBlendAlpha >= 1.0f) {
+				bShouldMove = false;
+				bIsSlowingDown = false;
+			}
+			/*
 			if (CurrentSpeedLimit <= 50.f) {
 				SetAllStrengthToZero();
 				bShouldMove = false;
 				bIsSlowingDown = false;
 			}
+			*/
 		}
 	}
 
@@ -117,5 +124,7 @@ float ACrowdActor::GetInitialSpeedLimit() const { return InitialSpeedLimit; }
 
 void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
 void ACrowdActor::SetPingMarker(APingMarker* NewPingMarker) { PingMarker = NewPingMarker; }
+
+void ACrowdActor::SetBlendAlphaTarget(float Target) { BlendAlphaTarget = Target; }
 
 

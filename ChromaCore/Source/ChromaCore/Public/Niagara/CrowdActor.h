@@ -26,7 +26,9 @@ class CHROMACORE_API ACrowdActor : public AActor {
 	float InitialNoiseStrength1 = 700.0f;
 	float InitialNoiseStrength2 = -1000.0f;
 	float InitialSpeedLimit = 1000.0f;
-	float CurrentSpeedLimit = InitialSpeedLimit;
+	//float CurrentSpeedLimit = InitialSpeedLimit;
+	float CurrentBlendAlpha = 0.0f;
+	float BlendAlphaTarget = 1.0f;
 
 	
 public:
@@ -73,7 +75,7 @@ public:
 
 	void SetTargetActor(AActor* NewTarget);
 	void SetPingMarker(APingMarker* NewPingMarker);
-
+	void SetBlendAlphaTarget(float Target);
 
 
 };
