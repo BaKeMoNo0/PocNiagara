@@ -47,7 +47,7 @@ void ACrowdActor::Tick(float DeltaTime) {
 	if (!TargetActor && bShouldMove) {
 		float Distance = FVector::Dist(CurrentLocation, Destination);
 		
-		if (Distance <= 1.0f && !bIsSlowingDown)  bIsSlowingDown = true;
+		if (Distance <= 5.0f && !bIsSlowingDown)  bIsSlowingDown = true;
 		
 		if (PingMarker && !PingMarker->IsPendingKillPending()) {
 			PingMarker->Destroy();
@@ -61,7 +61,7 @@ void ACrowdActor::Tick(float DeltaTime) {
 			CurrentBlendAlpha = FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.25);
 			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), CurrentBlendAlpha);
 
-			NiagaraSystem->SetVectorParameter(FName("User.SphereBlendAlpha"), SphereMesh->GetComponentLocation());
+			NiagaraSystem->SetVectorParameter(FName("User.SpherePos"), GetActorLocation());
 			UE_LOG(LogTemp, Warning, TEXT("spherepos -> x: %f, y: %f, z: %f"), SphereMesh->GetComponentLocation().X, SphereMesh->GetComponentLocation().Y, SphereMesh->GetComponentLocation().Z);
 
 			if (CurrentBlendAlpha >= 1.0f) {
