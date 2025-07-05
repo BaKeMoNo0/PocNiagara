@@ -3,8 +3,8 @@
 
 #include "Niagara/CrowdActor.h"
 #include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
-#include "Niagara/PingMarker.h"
+#include "PlayerCharacter/PlayerCharacter.h"
+#include "PlayerCharacter/Component/PlayerPingComponent.h"
 
 
 ACrowdActor::ACrowdActor() {
@@ -31,100 +31,70 @@ void ACrowdActor::BeginPlay() {
 void ACrowdActor::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
-	FVector CurrentLocation = GetActorLocation();
-	FVector Destination;
-	float Speed = FollowSpeed;
-	
+	UpdateDestination();
+	MoveTowardsDestination(DeltaTime);
+	UpdateNiagaraBlending(DeltaTime);
+}
+
+
+void ACrowdActor::UpdateDestination() {
 	if (TargetActor) {
 		Destination = TargetActor->GetActorLocation() + Offset;
 	} else if (bShouldMove) {
 		Destination = TargetLocation;
-		Speed /= 2.f;
-	} else {
-		return;
 	}
+}
 
+void ACrowdActor::MoveTowardsDestination(float DeltaTime) {
+	if (!bShouldMove && !TargetActor) return;
+
+	FVector NewLocation = FMath::VInterpTo(GetActorLocation(), Destination, DeltaTime, FollowSpeed);
+	SetActorLocation(NewLocation);
+}
+
+
+void ACrowdActor::UpdateNiagaraBlending(float DeltaTime) {
 	if (!TargetActor && bShouldMove) {
-		float Distance = FVector::Dist(CurrentLocation, Destination);
-		
-		if (Distance <= 5.0f && !bIsSlowingDown)  bIsSlowingDown = true;
-		
-		if (PingMarker && !PingMarker->IsPendingKillPending()) {
-			PingMarker->Destroy();
-			PingMarker = nullptr;
+		float Distance = FVector::Dist(GetActorLocation(), Destination);
+
+		if (Distance <= 2.5f && !bHasReachedDestination) {
+			PingComp->DestroyPingMarker();
+			bHasReachedDestination = true;
+			if (!bIsSlowingDown) bIsSlowingDown = true;
 		}
 
 		if (bIsSlowingDown) {
-			//CurrentSpeedLimit = FMath::FInterpTo(CurrentSpeedLimit, 0.0f, DeltaTime, 45);
-			//NiagaraSystem->SetFloatParameter(FName("User.SpeedLimit"), CurrentSpeedLimit);
-			SetBlendAlphaTarget(1.0f);
-			CurrentBlendAlpha = FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.25);
+			BlendAlphaTarget = 0.9;
+			CurrentBlendAlpha = FMath::Clamp(FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.15f),0.0f, 0.9f);
+			//UE_LOG(LogTemp, Warning, TEXT("CurrentBlendAlpha : %f"), CurrentBlendAlpha);
 			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), CurrentBlendAlpha);
-
-			NiagaraSystem->SetVectorParameter(FName("User.SpherePos"), GetActorLocation());
-			UE_LOG(LogTemp, Warning, TEXT("spherepos -> x: %f, y: %f, z: %f"), SphereMesh->GetComponentLocation().X, SphereMesh->GetComponentLocation().Y, SphereMesh->GetComponentLocation().Z);
-
-			if (CurrentBlendAlpha >= 1.0f) {
-				bShouldMove = false;
-				bIsSlowingDown = false;
-			}
-			/*
-			if (CurrentSpeedLimit <= 50.f) {
-				SetAllStrengthToZero();
-				bShouldMove = false;
-				bIsSlowingDown = false;
-			}
-			*/
+			NiagaraSystem->SetVectorParameter(FName("User.SpherePos"), SphereMesh->GetComponentLocation());
 		}
 	}
-
-	FVector NewLocation = FMath::VInterpTo(CurrentLocation, Destination, DeltaTime, Speed);
-	SetActorLocation(NewLocation);
-
 }
+
+
 
 void ACrowdActor::MoveTo(const FVector& NewTargetLocation) {
-	SetAllStrengthToInitialValue();
+	TargetActor = nullptr;
 	TargetLocation = NewTargetLocation;
 	bShouldMove = true;
+	bHasReachedDestination = false;
 }
 
-void ACrowdActor::SetAllStrengthToInitialValue(){
-	NiagaraSystem->SetFloatParameter(FName("User.SpeedLimit"), InitialSpeedLimit);
-	NiagaraSystem->SetFloatParameter(FName("User.DragStrength"), InitialDragStrength);
-	NiagaraSystem->SetFloatParameter(FName("User.AttractionStrength"), InitialAttractionStrength);
-	NiagaraSystem->SetVectorParameter(FName("User.GravityStrength"), InitialGravityStrength);
-	NiagaraSystem->SetFloatParameter(FName("User.VortexStrength"), InitialVortexStrength);
-	NiagaraSystem->SetFloatParameter(FName("User.NoiseStrength1"), InitialNoiseStrength1);
-	NiagaraSystem->SetFloatParameter(FName("User.NoiseStrength2"), InitialNoiseStrength2);
+
+void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
+	TargetActor = Player;
+	BlendAlphaTarget = 0.0f;
+	CurrentBlendAlpha = 0.0f;
+	bShouldMove = false;
+	bIsSlowingDown = false;
+	NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), 0.0f);
 }
 
-void ACrowdActor::SetAllStrengthToZero() {
-	NiagaraSystem->SetFloatParameter(FName("User.DragStrength"), 0.0f);
-	NiagaraSystem->SetFloatParameter(FName("User.AttractionStrength"), 0.0f);
-	NiagaraSystem->SetVectorParameter(FName("User.GravityStrength"), FVector(0.0f, 0.0f, 0.0f));
-	NiagaraSystem->SetFloatParameter(FName("User.VortexStrength"), 0.0f);
-	NiagaraSystem->SetFloatParameter(FName("User.NoiseStrength1"), 0.0f);
-	NiagaraSystem->SetFloatParameter(FName("User.NoiseStrength2"), 0.0f);
-}
 
 AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
 UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
 
-/*
-float ACrowdActor::GetIniatialDragStrength() const { return InitialDragStrength; }
-float ACrowdActor::GetInitialAttractionStrength() const { return InitialAttractionStrength; }
-FVector ACrowdActor::GetInitialGravityStrength() const { return InitialGravityStrength; }
-float ACrowdActor::GetInitialVortexStrength() const { return InitialVortexStrength; }
-float ACrowdActor::GetInitialNoiseStrength1() const { return InitialNoiseStrength1; }
-float ACrowdActor::GetInitialNoiseStrength2() const { return InitialNoiseStrength2; }
-float ACrowdActor::GetInitialSpeedLimit() const { return InitialSpeedLimit; }
-*/
-
-
+void ACrowdActor::SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
 void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
-void ACrowdActor::SetPingMarker(APingMarker* NewPingMarker) { PingMarker = NewPingMarker; }
-
-void ACrowdActor::SetBlendAlphaTarget(float Target) { BlendAlphaTarget = Target; }
-
-

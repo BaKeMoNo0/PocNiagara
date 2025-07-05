@@ -67,6 +67,7 @@ void APlayerCharacter::BeginPlay() {
 
 		if (SpawnedCrowdActor) {
 			SpawnedCrowdActor->SetTargetActor(this);
+			SpawnedCrowdActor->SetPingComp(PlayerPingComponent);
 		}
 	}
 
@@ -75,7 +76,6 @@ void APlayerCharacter::BeginPlay() {
 UPlayerMovementComponent* APlayerCharacter::GetPlayerMovementComponent() const{ return PlayerMovementComponent;}
 UPlayerPingComponent* APlayerCharacter::GetPlayerPingComponent() const { return PlayerPingComponent; }
 UPlayerSoundComponent* APlayerCharacter::GetPlayerSoundComponent() const { return PlayerSoundComponent;}
-
 UAudioComponent* APlayerCharacter::GetAudioComponent() const { return AudioComponent;}
 ACrowdActor* APlayerCharacter::GetCrowdActor() const { return SpawnedCrowdActor;}
 

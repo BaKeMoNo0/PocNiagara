@@ -44,5 +44,5 @@ public:
 	void StopAiming();
 	void CallPing();
 	void AdjustPingDistance(float AxisValue);
-
+	void DestroyPingMarker();
 };

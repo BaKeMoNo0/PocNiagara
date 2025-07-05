@@ -44,10 +44,6 @@ void UPlayerPingComponent::StartAiming() {
 			FRotator::ZeroRotator,
 			SpawnParams
 		);
-
-		if (PlayerCharacter && PlayerCharacter->GetCrowdActor()) {
-			PlayerCharacter->GetCrowdActor()->SetPingMarker(ActivePingMarker);
-		}
 	}
 }
 
@@ -57,7 +53,6 @@ void UPlayerPingComponent::StopAiming() {
 
 	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 	if (PlayerCharacter && PlayerCharacter->GetCrowdActor()){
-		PlayerCharacter->GetCrowdActor()->SetTargetActor(nullptr);
 		PlayerCharacter->GetCrowdActor()->MoveTo(LastValidLocation);
 	}
 }
@@ -101,4 +96,10 @@ void UPlayerPingComponent::TraceFromCrosshair() {
 
 void UPlayerPingComponent::AdjustPingDistance(float AxisValue) {
 	CurrentPingDistance = FMath::Clamp(CurrentPingDistance + AxisValue * 50.f, MinPingDistance, MaxPingDistance);
+}
+
+void UPlayerPingComponent::DestroyPingMarker() {
+	if (ActivePingMarker && !ActivePingMarker->IsPendingKillPending()) {
+		ActivePingMarker->Destroy();
+	}
 }

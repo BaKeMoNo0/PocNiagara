@@ -7,6 +7,8 @@
 #include "CrowdActor.generated.h"
 
 
+class UPlayerPingComponent;
+class APlayerCharacter;
 class APingMarker;
 class UNiagaraComponent;
 
@@ -16,19 +18,13 @@ class CHROMACORE_API ACrowdActor : public AActor {
 
 	FVector Offset;
 	FVector TargetLocation;
+	FVector Destination;
 	bool bShouldMove = false;
 	bool bIsSlowingDown = false;
-	
-	float InitialDragStrength = 10.0f;
-	float InitialAttractionStrength = 120.0f;
-	FVector InitialGravityStrength = FVector(0.0f, 0.0f, - 980.0f);
-	float InitialVortexStrength = 100.0f;
-	float InitialNoiseStrength1 = 700.0f;
-	float InitialNoiseStrength2 = -1000.0f;
-	float InitialSpeedLimit = 1000.0f;
-	//float CurrentSpeedLimit = InitialSpeedLimit;
+	bool bHasReachedDestination = false;
+
 	float CurrentBlendAlpha = 0.0f;
-	float BlendAlphaTarget = 1.0f;
+	float BlendAlphaTarget = 0.9f;
 
 	
 public:
@@ -38,10 +34,13 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Follow")
+	UPROPERTY(VisibleAnywhere, Category = "Follow")
 	AActor* TargetActor;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Follow")
+	UPROPERTY()
+	UPlayerPingComponent* PingComp;
+
+	UPROPERTY(VisibleAnywhere, Category = "Follow")
 	float FollowSpeed = 2.0f;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -50,32 +49,16 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UNiagaraComponent* NiagaraSystem;
 
-	UPROPERTY()
-	APingMarker* PingMarker = nullptr;
-
 public:
+	void MoveTo(const FVector& NewTargetLocation);
+	void ReturnToPlayer(APlayerCharacter* Player);
+	void UpdateDestination();
+	void MoveTowardsDestination(float DeltaTime);
+	void UpdateNiagaraBlending(float DeltaTime);
 
 	UNiagaraComponent* GetNiagaraSystem();
 	AActor* GetTargetActor();
-	
-	void MoveTo(const FVector& NewTargetLocation);
-	void SetAllStrengthToZero();
-	void SetAllStrengthToInitialValue();
-	
 
-	/*
-	float GetIniatialDragStrength() const;
-	float GetInitialAttractionStrength() const;
-	FVector GetInitialGravityStrength() const;
-	float GetInitialVortexStrength() const;
-	float GetInitialNoiseStrength1() const;
-	float GetInitialNoiseStrength2() const;
-	float GetInitialSpeedLimit() const;
-	*/
-
+	void SetPingComp(UPlayerPingComponent* PingCompRef);
 	void SetTargetActor(AActor* NewTarget);
-	void SetPingMarker(APingMarker* NewPingMarker);
-	void SetBlendAlphaTarget(float Target);
-
-
 };
