@@ -12,9 +12,14 @@ ACrowdActor::ACrowdActor() {
 
 	SphereMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SphereMesh"));
 	RootComponent = SphereMesh;
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("/Engine/BasicShapes/Sphere"));
 	if (SphereMeshAsset.Succeeded()) SphereMesh->SetStaticMesh(SphereMeshAsset.Object);
+
+	CubeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeMesh"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube"));
+	if (CubeMeshAsset.Succeeded()) CubeMesh->SetStaticMesh(CubeMeshAsset.Object);
+	CubeMesh->SetupAttachment(SphereMesh);
+	CubeMesh->SetWorldScale3D(FVector(1.5f, 1.5f, 1.5f));
 	
 	NiagaraSystem = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraSystem"));
 	NiagaraSystem->SetupAttachment(SphereMesh);
@@ -66,9 +71,14 @@ void ACrowdActor::UpdateNiagaraBlending(float DeltaTime) {
 		if (bIsSlowingDown) {
 			BlendAlphaTarget = 0.9;
 			CurrentBlendAlpha = FMath::Clamp(FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.15f),0.0f, 0.9f);
-			//UE_LOG(LogTemp, Warning, TEXT("CurrentBlendAlpha : %f"), CurrentBlendAlpha);
+			UE_LOG(LogTemp, Warning, TEXT("CurrentBlendAlpha : %f"), CurrentBlendAlpha);
 			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), CurrentBlendAlpha);
 			NiagaraSystem->SetVectorParameter(FName("User.SpherePos"), SphereMesh->GetComponentLocation());
+			if (CurrentBlendAlpha > 0.5f) {
+				CubeMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				CubeMesh->SetCollisionResponseToAllChannels(ECR_Block);
+				CubeMesh->SetCollisionObjectType(ECC_WorldStatic);
+			}
 		}
 	}
 }
@@ -90,6 +100,7 @@ void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
 	bShouldMove = false;
 	bIsSlowingDown = false;
 	NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), 0.0f);
+	CubeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 
