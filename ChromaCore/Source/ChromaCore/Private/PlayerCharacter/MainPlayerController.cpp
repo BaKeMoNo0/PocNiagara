@@ -6,7 +6,6 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
-#include "NiagaraComponent.h"
 #include "PlayerCharacter/Component/PlayerMovementComponent.h"
 #include "PlayerCharacter/Component/PlayerPingComponent.h"
 #include "PlayerCharacter/Component/PlayerSoundComponent.h"
@@ -40,6 +39,10 @@ void AMainPlayerController::SetupInputComponent() {
 		EnhancedInputComponent->BindAction(CallBackAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallBackActor);
 		EnhancedInputComponent->BindAction(ScrollAction, ETriggerEvent::Triggered, this, &AMainPlayerController::AdjustPingDistance);
 		EnhancedInputComponent->BindAction(SoundAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallSound);
+
+		EnhancedInputComponent->BindAction(SelectCubeAction, ETriggerEvent::Triggered, this, &AMainPlayerController::SetFormCube);
+		EnhancedInputComponent->BindAction(SelectPlaneAction, ETriggerEvent::Triggered, this, &AMainPlayerController::SetFormPlane);
+
 	}
 }
 
@@ -115,4 +118,12 @@ void AMainPlayerController::AdjustPingDistance(const FInputActionValue& Value) {
 	if (ControlledCharacter && ControlledCharacter->GetPlayerPingComponent()) {
 		ControlledCharacter->GetPlayerPingComponent()->AdjustPingDistance(Value.Get<float>());
 	}
+}
+
+void AMainPlayerController::SetFormCube() {
+	ControlledCharacter->GetCrowdActor()->SetFormType(EFormType::Cube);
+}
+
+void AMainPlayerController::SetFormPlane() {
+	ControlledCharacter->GetCrowdActor()->SetFormType(EFormType::Plane);
 }

@@ -54,6 +54,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction *SoundAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction *SelectCubeAction;
+
+	UPROPERTY(EditAnywhere, Category= Input)
+	UInputAction * SelectPlaneAction;
 	
 	void CallMove(const FInputActionValue &Value);
 	void CallRun();
@@ -65,6 +71,8 @@ protected:
 	void CallBackActor();
 	void CallSound();
 	void AdjustPingDistance(const FInputActionValue& Value);
+	void SetFormCube();
+	void SetFormPlane();
 	
 	void InitWidget();
 

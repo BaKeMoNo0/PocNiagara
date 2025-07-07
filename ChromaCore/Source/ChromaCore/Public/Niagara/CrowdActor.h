@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "./FormType.h"
 #include "CrowdActor.generated.h"
+
 
 
 class UPlayerPingComponent;
@@ -52,6 +54,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UNiagaraComponent* NiagaraSystem;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EFormType FormType = EFormType::Cube;
+
 public:
 	void MoveTo(const FVector& NewTargetLocation);
 	void ReturnToPlayer(APlayerCharacter* Player);
@@ -64,4 +69,5 @@ public:
 
 	void SetPingComp(UPlayerPingComponent* PingCompRef);
 	void SetTargetActor(AActor* NewTarget);
+	void SetFormType(EFormType NewFormType);
 };

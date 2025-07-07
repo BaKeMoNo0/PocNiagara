@@ -109,3 +109,8 @@ UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
 
 void ACrowdActor::SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
 void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
+
+void ACrowdActor::SetFormType(EFormType NewFormType){
+	FormType = NewFormType;
+	NiagaraSystem->SetIntParameter(FName("User.FormType"), static_cast<int32>(NewFormType));
+}
