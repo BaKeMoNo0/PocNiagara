@@ -78,6 +78,7 @@ void UPlayerPingComponent::TraceFromCrosshair() {
 		if (IsValid(ActivePingMarker) && PlayerCharacter && PlayerCharacter->GetCrowdActor()) {
 			Params.AddIgnoredActor(ActivePingMarker);
 			Params.AddIgnoredActor(PlayerCharacter->GetCrowdActor());
+			Params.AddIgnoredActors(PlayerCharacter->GetCrowdActor()->Children);
 		}
 
 		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params)) {

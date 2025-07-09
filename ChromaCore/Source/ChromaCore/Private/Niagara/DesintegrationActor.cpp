@@ -37,6 +37,7 @@ void ADesintegrationActor::OnPlayerEnterRadius(UPrimitiveComponent* OverlappedCo
 			UE_LOG(LogTemp, Warning, TEXT("OnPlayerEnterRadius"));
 			PC->SetCurrentTargetActor(this);
 			bPlayerIsNear = true;
+			PlayerCharacter = Player;
 		}
 	}
 }
@@ -50,6 +51,7 @@ void ADesintegrationActor::OnPlayerExitRadius(UPrimitiveComponent* OverlappedCom
 				PC->ClearCurrentTargetActor();
 			}
 			bPlayerIsNear = false;
+			PlayerCharacter = nullptr;
 		}
 	}
 }
@@ -63,4 +65,6 @@ bool ADesintegrationActor::GetPlayerIsNear() const { return bPlayerIsNear; }
 UNiagaraComponent* ADesintegrationActor::GetNiagaraComp() const { return NiagaraSystem; }
 UStaticMeshComponent* ADesintegrationActor::GetMesh() const { return Mesh; }
 USphereComponent* ADesintegrationActor::GetSphereCollision() const { return SphereComp; }
+
+APlayerCharacter* ADesintegrationActor::GetPlayerCharacter() const { return PlayerCharacter;}
 

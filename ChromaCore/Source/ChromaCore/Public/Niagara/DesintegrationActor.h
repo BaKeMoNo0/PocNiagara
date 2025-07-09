@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "DesintegrationActor.generated.h"
 
+class APlayerCharacter;
 class UNiagaraComponent;
 
 UCLASS()
@@ -28,6 +29,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	USphereComponent* SphereComp;
 
+	UPROPERTY()
+	APlayerCharacter* PlayerCharacter = nullptr;
+
 	UFUNCTION()
 	void OnPlayerEnterRadius(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
 							 bool bFromSweep, const FHitResult& SweepResult);
@@ -43,4 +47,5 @@ public:
 	UNiagaraComponent* GetNiagaraComp() const;
 	UStaticMeshComponent* GetMesh() const;
 	USphereComponent* GetSphereCollision() const;
+	APlayerCharacter* GetPlayerCharacter() const;
 };

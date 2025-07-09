@@ -14,12 +14,16 @@ ACrowdActor::ACrowdActor() {
 	RootComponent = SphereMesh;
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("/Engine/BasicShapes/Sphere"));
 	if (SphereMeshAsset.Succeeded()) SphereMesh->SetStaticMesh(SphereMeshAsset.Object);
+	SphereMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 
 	CubeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeMesh"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube"));
 	if (CubeMeshAsset.Succeeded()) CubeMesh->SetStaticMesh(CubeMeshAsset.Object);
 	CubeMesh->SetupAttachment(SphereMesh);
 	CubeMesh->SetWorldScale3D(FVector(1.5f, 1.5f, 1.5f));
+	CubeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	
 	NiagaraSystem = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraSystem"));
 	NiagaraSystem->SetupAttachment(SphereMesh);
