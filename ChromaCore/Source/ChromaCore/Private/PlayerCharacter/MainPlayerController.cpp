@@ -9,6 +9,8 @@
 #include "PlayerCharacter/Component/PlayerMovementComponent.h"
 #include "PlayerCharacter/Component/PlayerPingComponent.h"
 #include "PlayerCharacter/Component/PlayerSoundComponent.h"
+#include "Niagara/Component/DisintegratableComponent.h"
+#include "Niagara/DesintegrationActor.h"
 
 void AMainPlayerController::BeginPlay() {
 	Super::BeginPlay();
@@ -43,6 +45,7 @@ void AMainPlayerController::SetupInputComponent() {
 		EnhancedInputComponent->BindAction(SelectCubeAction, ETriggerEvent::Triggered, this, &AMainPlayerController::SetFormCube);
 		EnhancedInputComponent->BindAction(SelectPlaneAction, ETriggerEvent::Triggered, this, &AMainPlayerController::SetFormPlane);
 
+		EnhancedInputComponent->BindAction(DesintegrationAction, ETriggerEvent::Triggered, this, &AMainPlayerController::TriggerDesintegration);
 	}
 }
 
@@ -57,6 +60,7 @@ void AMainPlayerController::InitWidget() {
 		}
 	}
 }
+
 
 
 void AMainPlayerController::CallMove(const FInputActionValue &Value) {
@@ -127,3 +131,19 @@ void AMainPlayerController::SetFormCube() {
 void AMainPlayerController::SetFormPlane() {
 	ControlledCharacter->GetCrowdActor()->SetFormType(EFormType::Plane);
 }
+
+
+
+void AMainPlayerController::TriggerDesintegration() {
+	if (CurrentTargetActor) {
+		if (UDisintegratableComponent* DisComponent = CurrentTargetActor->FindComponentByClass<UDisintegratableComponent>()) {
+			UE_LOG(LogTemp, Warning, TEXT("TriggerDesintegration"));
+			DisComponent->TriggerDisintegration();
+			CurrentTargetActor = nullptr;
+		}
+	}
+}
+
+ADesintegrationActor* AMainPlayerController::GetCurrentTargetActor() const { return CurrentTargetActor; }
+void AMainPlayerController::SetCurrentTargetActor(ADesintegrationActor* Target) { CurrentTargetActor = Target; }
+void AMainPlayerController::ClearCurrentTargetActor() { CurrentTargetActor = nullptr; }

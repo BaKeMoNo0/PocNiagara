@@ -9,9 +9,9 @@
 #include "GameFramework/PlayerController.h"
 #include "MainPlayerController.generated.h"
 
-/**
- * 
- */
+
+class ADesintegrationActor;
+
 UCLASS()
 class CHROMACORE_API AMainPlayerController : public APlayerController {
 	GENERATED_BODY()
@@ -58,8 +58,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction *SelectCubeAction;
 
-	UPROPERTY(EditAnywhere, Category= Input)
-	UInputAction * SelectPlaneAction;
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction *SelectPlaneAction;
+
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction *DesintegrationAction;
+
+	UPROPERTY()
+	ADesintegrationActor* CurrentTargetActor = nullptr;
 	
 	void CallMove(const FInputActionValue &Value);
 	void CallRun();
@@ -73,7 +79,12 @@ protected:
 	void AdjustPingDistance(const FInputActionValue& Value);
 	void SetFormCube();
 	void SetFormPlane();
+	void TriggerDesintegration();
 	
 	void InitWidget();
 
+public:
+	ADesintegrationActor* GetCurrentTargetActor() const;
+	void SetCurrentTargetActor(ADesintegrationActor* Target);
+	void ClearCurrentTargetActor();
 };

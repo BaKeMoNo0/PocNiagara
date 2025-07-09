@@ -71,7 +71,7 @@ void ACrowdActor::UpdateNiagaraBlending(float DeltaTime) {
 		if (bIsSlowingDown) {
 			BlendAlphaTarget = 0.9;
 			CurrentBlendAlpha = FMath::Clamp(FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.15f),0.0f, 0.9f);
-			UE_LOG(LogTemp, Warning, TEXT("CurrentBlendAlpha : %f"), CurrentBlendAlpha);
+			//UE_LOG(LogTemp, Warning, TEXT("CurrentBlendAlpha : %f"), CurrentBlendAlpha);
 			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), CurrentBlendAlpha);
 			NiagaraSystem->SetVectorParameter(FName("User.SpherePos"), SphereMesh->GetComponentLocation());
 			if (CurrentBlendAlpha > 0.5f) {
