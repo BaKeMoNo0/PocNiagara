@@ -137,7 +137,6 @@ void AMainPlayerController::SetFormPlane() {
 void AMainPlayerController::TriggerDesintegration() {
 	if (CurrentTargetActor) {
 		if (UDisintegratableComponent* DisComponent = CurrentTargetActor->FindComponentByClass<UDisintegratableComponent>()) {
-			UE_LOG(LogTemp, Warning, TEXT("TriggerDesintegration"));
 			DisComponent->TriggerDisintegration();
 			CurrentTargetActor = nullptr;
 		}

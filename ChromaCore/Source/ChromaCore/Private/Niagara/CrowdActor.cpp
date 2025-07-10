@@ -17,12 +17,12 @@ ACrowdActor::ACrowdActor() {
 	SphereMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 
-	CubeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeMesh"));
+	CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeMesh"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube"));
-	if (CubeMeshAsset.Succeeded()) CubeMesh->SetStaticMesh(CubeMeshAsset.Object);
-	CubeMesh->SetupAttachment(SphereMesh);
-	CubeMesh->SetWorldScale3D(FVector(1.5f, 1.5f, 1.5f));
-	CubeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	if (CubeMeshAsset.Succeeded()) CollisionMesh->SetStaticMesh(CubeMeshAsset.Object);
+	CollisionMesh->SetupAttachment(SphereMesh);
+	CollisionMesh->SetWorldScale3D(FVector(1.5f, 1.5f, 1.5f));
+	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	
 	NiagaraSystem = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraSystem"));
@@ -79,14 +79,13 @@ void ACrowdActor::UpdateNiagaraBlending(float DeltaTime) {
 			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), CurrentBlendAlpha);
 			NiagaraSystem->SetVectorParameter(FName("User.SpherePos"), SphereMesh->GetComponentLocation());
 			if (CurrentBlendAlpha > 0.5f) {
-				CubeMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-				CubeMesh->SetCollisionResponseToAllChannels(ECR_Block);
-				CubeMesh->SetCollisionObjectType(ECC_WorldStatic);
+				CollisionMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+				CollisionMesh->SetCollisionResponseToAllChannels(ECR_Block);
+				CollisionMesh->SetCollisionObjectType(ECC_WorldStatic);
 			}
 		}
 	}
 }
-
 
 
 void ACrowdActor::MoveTo(const FVector& NewTargetLocation) {
@@ -104,18 +103,33 @@ void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
 	bShouldMove = false;
 	bIsSlowingDown = false;
 	NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), 0.0f);
-	CubeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 
 AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
-UStaticMeshComponent* ACrowdActor::GetSphere() const { return SphereMesh; }
+UStaticMeshComponent* ACrowdActor::GetCollisionMesh() const { return SphereMesh; }
 UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
 
 void ACrowdActor::SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
 void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
 
 void ACrowdActor::SetFormType(EFormType NewFormType){
+	if (FormType == NewFormType) return;
 	FormType = NewFormType;
+	
 	NiagaraSystem->SetIntParameter(FName("User.FormType"), static_cast<int32>(NewFormType));
+
+	switch (FormType) {
+	case EFormType::Cube:
+		CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube")));
+		CollisionMesh->SetWorldScale3D(FVector(1.5f));
+		break;
+	case EFormType::Plane:
+		CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane")));
+		CollisionMesh->SetWorldScale3D(FVector(2.0f));
+		break;
+	default:
+		break;
+	}
 }

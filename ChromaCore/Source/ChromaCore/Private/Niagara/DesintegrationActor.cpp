@@ -51,7 +51,6 @@ void ADesintegrationActor::OnPlayerExitRadius(UPrimitiveComponent* OverlappedCom
 				PC->ClearCurrentTargetActor();
 			}
 			bPlayerIsNear = false;
-			PlayerCharacter = nullptr;
 		}
 	}
 }

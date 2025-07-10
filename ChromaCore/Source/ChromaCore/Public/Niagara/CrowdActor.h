@@ -49,7 +49,7 @@ protected:
 	UStaticMeshComponent* SphereMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UStaticMeshComponent* CubeMesh;
+	UStaticMeshComponent* CollisionMesh;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UNiagaraComponent* NiagaraSystem;
@@ -57,17 +57,21 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EFormType FormType = EFormType::Cube;
 
-public:
-	void MoveTo(const FVector& NewTargetLocation);
-	void ReturnToPlayer(APlayerCharacter* Player);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	EFormType LastFormType = EFormType::Cube;
+
 	void UpdateDestination();
 	void MoveTowardsDestination(float DeltaTime);
 	void UpdateNiagaraBlending(float DeltaTime);
+	
+public:
+	void MoveTo(const FVector& NewTargetLocation);
+	void ReturnToPlayer(APlayerCharacter* Player);
 
 	UNiagaraComponent* GetNiagaraSystem();
 	AActor* GetTargetActor();
 
-	UStaticMeshComponent* GetSphere() const;
+	UStaticMeshComponent* GetCollisionMesh() const;
 
 	void SetPingComp(UPlayerPingComponent* PingCompRef);
 	void SetTargetActor(AActor* NewTarget);

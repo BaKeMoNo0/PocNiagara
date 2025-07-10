@@ -24,10 +24,13 @@ void UDisintegratableComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
 	if (bIsDisintegrating && Owner->GetNiagaraComp()) {
+		UE_LOG(LogTemp, Warning, TEXT("bIsDisintegrating"));
 		if (Owner->GetPlayerCharacter()) {
-			if (Owner->GetPlayerCharacter()->GetCrowdActor() && Owner->GetPlayerCharacter()->GetCrowdActor()->GetSphere()) {
-				CurrentCrowdLocation = Owner->GetPlayerCharacter()->GetCrowdActor()->GetSphere()->GetComponentLocation();
+			UE_LOG(LogTemp, Warning, TEXT("GetPlayerCharacter"));
+			if (Owner->GetPlayerCharacter()->GetCrowdActor() && Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()) {
+				CurrentCrowdLocation = Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()->GetComponentLocation();
 				Owner->GetNiagaraComp()->SetVectorParameter(FName("User.AttractionTarget"), CurrentCrowdLocation);
+				UE_LOG(LogTemp, Warning, TEXT("Updating AttractionTarget: %s"), *CurrentCrowdLocation.ToString());
 			}
 		}
 	}
@@ -43,9 +46,9 @@ void UDisintegratableComponent::TriggerDisintegration() {
 			Owner->GetNiagaraComp()->Activate(true);
 
 			if (Owner->GetPlayerCharacter()) {
-				if (Owner->GetPlayerCharacter()->GetCrowdActor() && Owner->GetPlayerCharacter()->GetCrowdActor()->GetSphere()) {
-					CurrentCrowdLocation = Owner->GetPlayerCharacter()->GetCrowdActor()->GetSphere()->GetComponentLocation();
-					DrawDebugSphere(GetWorld(), CurrentCrowdLocation, 20.f, 12, FColor::Green, false, 2.0f);
+				if (Owner->GetPlayerCharacter()->GetCrowdActor() && Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()) {
+					CurrentCrowdLocation = Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()->GetComponentLocation();
+					//DrawDebugSphere(GetWorld(), CurrentCrowdLocation, 20.f, 12, FColor::Green, false, 2.0f);
 					Niagara->SetVectorParameter(FName("User.AttractionTarget"), CurrentCrowdLocation);
 				}
 			}
