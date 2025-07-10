@@ -67,6 +67,8 @@ public:
 	UNiagaraComponent* GetNiagaraSystem();
 	AActor* GetTargetActor();
 
+	UStaticMeshComponent* GetSphere() const;
+
 	void SetPingComp(UPlayerPingComponent* PingCompRef);
 	void SetTargetActor(AActor* NewTarget);
 	void SetFormType(EFormType NewFormType);

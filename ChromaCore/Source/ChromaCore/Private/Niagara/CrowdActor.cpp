@@ -109,6 +109,7 @@ void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
 
 
 AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
+UStaticMeshComponent* ACrowdActor::GetSphere() const { return SphereMesh; }
 UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
 
 void ACrowdActor::SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
