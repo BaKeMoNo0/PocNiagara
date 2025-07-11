@@ -24,13 +24,12 @@ void UDisintegratableComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
 	if (bIsDisintegrating && Owner->GetNiagaraComp()) {
-		UE_LOG(LogTemp, Warning, TEXT("bIsDisintegrating"));
+
 		if (Owner->GetPlayerCharacter()) {
-			UE_LOG(LogTemp, Warning, TEXT("GetPlayerCharacter"));
+			
 			if (Owner->GetPlayerCharacter()->GetCrowdActor() && Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()) {
 				CurrentCrowdLocation = Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()->GetComponentLocation();
 				Owner->GetNiagaraComp()->SetVectorParameter(FName("User.AttractionTarget"), CurrentCrowdLocation);
-				UE_LOG(LogTemp, Warning, TEXT("Updating AttractionTarget: %s"), *CurrentCrowdLocation.ToString());
 			}
 		}
 	}

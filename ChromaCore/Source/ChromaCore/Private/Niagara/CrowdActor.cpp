@@ -66,19 +66,20 @@ void ACrowdActor::UpdateNiagaraBlending(float DeltaTime) {
 	if (!TargetActor && bShouldMove) {
 		float Distance = FVector::Dist(GetActorLocation(), Destination);
 
-		if (Distance <= 2.5f && !bHasReachedDestination) {
-			PingComp->DestroyPingMarker();
+		if (Distance <= 5.0f && !bHasReachedDestination) {
+			
+			if (PingComp && PingComp->IsThisMyActiveMarker(CurrentPingMarkerToDestroy)) PingComp->DestroyPingMarker();
+			
 			bHasReachedDestination = true;
 			if (!bIsSlowingDown) bIsSlowingDown = true;
 		}
 
 		if (bIsSlowingDown) {
 			BlendAlphaTarget = 0.9;
-			CurrentBlendAlpha = FMath::Clamp(FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.15f),0.0f, 0.9f);
-			//UE_LOG(LogTemp, Warning, TEXT("CurrentBlendAlpha : %f"), CurrentBlendAlpha);
+			CurrentBlendAlpha = FMath::Clamp(FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.25f),0.0f, 0.9f);
 			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), CurrentBlendAlpha);
 			NiagaraSystem->SetVectorParameter(FName("User.SpherePos"), SphereMesh->GetComponentLocation());
-			if (CurrentBlendAlpha > 0.5f) {
+			if (CurrentBlendAlpha > 0.2f) {
 				CollisionMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 				CollisionMesh->SetCollisionResponseToAllChannels(ECR_Block);
 				CollisionMesh->SetCollisionObjectType(ECC_WorldStatic);
@@ -108,6 +109,7 @@ void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
 
 
 AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
+EFormType ACrowdActor::GetFormType() const { return FormType; }
 UStaticMeshComponent* ACrowdActor::GetCollisionMesh() const { return SphereMesh; }
 UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
 

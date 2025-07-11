@@ -31,29 +31,39 @@ void UPlayerPingComponent::CallPing() {
 void UPlayerPingComponent::StartAiming() {
 	bIsAiming = true;
 	SetComponentTickEnabled(true);
-	
-	if (!IsValid(ActivePingMarker) && PingMarkerClass) {
-		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
 
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = GetOwner();
-
-		ActivePingMarker = GetWorld()->SpawnActor<APingMarker>(
-			PingMarkerClass,
-			LastValidLocation,
-			FRotator::ZeroRotator,
-			SpawnParams
-		);
+	if (IsValid(ActivePingMarker)) {
+		ActivePingMarker->Destroy();
+		ActivePingMarker = nullptr;
 	}
+
+
+	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+	EFormType FormType = EFormType::Cube;
+	if (PlayerCharacter && PlayerCharacter->GetCrowdActor()) FormType = PlayerCharacter->GetCrowdActor()->GetFormType();
+	
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = GetOwner();
+
+	ActivePingMarker = GetWorld()->SpawnActor<APingMarker>(
+		PingMarkerClass,
+		LastValidLocation,
+		FRotator::ZeroRotator,
+		SpawnParams
+	);
+
+	if (ActivePingMarker) ActivePingMarker->SetFormVisual(FormType);
 }
+
 
 void UPlayerPingComponent::StopAiming() {
 	bIsAiming = false;
 	SetComponentTickEnabled(false);
 
 	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
-	if (PlayerCharacter && PlayerCharacter->GetCrowdActor()){
+	if (PlayerCharacter && PlayerCharacter->GetCrowdActor()) {
 		PlayerCharacter->GetCrowdActor()->MoveTo(LastValidLocation);
+		PlayerCharacter->GetCrowdActor()->CurrentPingMarkerToDestroy = ActivePingMarker;
 	}
 }
 
@@ -103,4 +113,8 @@ void UPlayerPingComponent::DestroyPingMarker() {
 	if (ActivePingMarker && !ActivePingMarker->IsPendingKillPending()) {
 		ActivePingMarker->Destroy();
 	}
+}
+
+bool UPlayerPingComponent::IsThisMyActiveMarker(APingMarker* Marker) const {
+	return Marker != nullptr && Marker == ActivePingMarker;
 }

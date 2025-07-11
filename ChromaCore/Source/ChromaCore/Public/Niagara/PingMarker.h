@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "./FormType.h"
 #include "PingMarker.generated.h"
 
 class UWidgetComponent;
@@ -16,11 +17,16 @@ public:
 	APingMarker();
 
 protected:
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UWidgetComponent* MarkerWidget;
+	UStaticMeshComponent* VisualMesh;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ping")
-	float Lifetime = 2.f;
+	UPROPERTY(EditAnywhere, Category = "Ping")
+	UMaterialInterface* PingMaterial;
 
-	FTimerHandle LifetimeTimer;
+	UPROPERTY(EditAnywhere, Category = "Mesh")
+	UStaticMesh* CustomMesh;
+
+public:
+	void SetFormVisual(EFormType Type);
 };

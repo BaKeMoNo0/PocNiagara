@@ -57,19 +57,20 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EFormType FormType = EFormType::Cube;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EFormType LastFormType = EFormType::Cube;
+
 
 	void UpdateDestination();
 	void MoveTowardsDestination(float DeltaTime);
 	void UpdateNiagaraBlending(float DeltaTime);
 	
 public:
+	APingMarker* CurrentPingMarkerToDestroy = nullptr;
 	void MoveTo(const FVector& NewTargetLocation);
 	void ReturnToPlayer(APlayerCharacter* Player);
 
 	UNiagaraComponent* GetNiagaraSystem();
 	AActor* GetTargetActor();
+	EFormType GetFormType() const;
 
 	UStaticMeshComponent* GetCollisionMesh() const;
 
