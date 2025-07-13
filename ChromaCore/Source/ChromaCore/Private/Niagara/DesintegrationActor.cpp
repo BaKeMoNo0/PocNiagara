@@ -34,7 +34,6 @@ void ADesintegrationActor::BeginPlay() {
 void ADesintegrationActor::OnPlayerEnterRadius(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	if (APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor)) {
 		if (AMainPlayerController* PC = Cast<AMainPlayerController>(Player->GetController())) {
-			UE_LOG(LogTemp, Warning, TEXT("OnPlayerEnterRadius"));
 			PC->SetCurrentTargetActor(this);
 			bPlayerIsNear = true;
 			PlayerCharacter = Player;
@@ -46,7 +45,6 @@ void ADesintegrationActor::OnPlayerExitRadius(UPrimitiveComponent* OverlappedCom
 	
 	if (APlayerCharacter* Player = Cast<APlayerCharacter>(OtherActor)) {
 		if (AMainPlayerController* PC = Cast<AMainPlayerController>(Player->GetController())) {
-			UE_LOG(LogTemp, Warning, TEXT("OnPlayerExitRadius"));
 			if (PC->GetCurrentTargetActor() == this) {
 				PC->ClearCurrentTargetActor();
 			}

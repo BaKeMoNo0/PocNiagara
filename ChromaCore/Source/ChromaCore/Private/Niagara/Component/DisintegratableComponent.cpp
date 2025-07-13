@@ -60,6 +60,11 @@ void UDisintegratableComponent::TriggerDisintegration() {
 				[this, Niagara]() {
 					bIsDisintegrating = false;
 					Niagara->Deactivate();
+					int SpawnCount = Owner->GetPlayerCharacter()->GetCrowdActor()->GetSpawnCount();
+					Owner->GetPlayerCharacter()->GetCrowdActor()->SetSpawnCount(SpawnCount + 1000);
+					Owner->GetPlayerCharacter()->GetCrowdActor()->GetNiagaraSystem()->SetIntParameter(FName("User.SpawnCount"), Owner->GetPlayerCharacter()->GetCrowdActor()->GetSpawnCount());
+					Owner->GetPlayerCharacter()->GetCrowdActor()->SetFormType(Owner->GetPlayerCharacter()->GetCrowdActor()->GetFormType());
+					Owner->GetPlayerCharacter()->GetCrowdActor()->GetNiagaraSystem()->ReinitializeSystem();
 				},
 				5.0f,
 				false

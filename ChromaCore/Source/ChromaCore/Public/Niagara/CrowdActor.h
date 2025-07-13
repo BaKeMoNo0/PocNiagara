@@ -8,7 +8,7 @@
 #include "CrowdActor.generated.h"
 
 
-
+class UCrowdPositionGeneratorComponent;
 class UPlayerPingComponent;
 class APlayerCharacter;
 class APingMarker;
@@ -27,6 +27,8 @@ class CHROMACORE_API ACrowdActor : public AActor {
 
 	float CurrentBlendAlpha = 0.0f;
 	float BlendAlphaTarget = 0.9f;
+	int SpawnCount = 125;
+	float Spacing = 15.0f;
 
 	
 public:
@@ -55,26 +57,31 @@ protected:
 	UNiagaraComponent* NiagaraSystem;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UCrowdPositionGeneratorComponent* PositionGeneratorComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EFormType FormType = EFormType::Cube;
 
-
+	
 
 	void UpdateDestination();
 	void MoveTowardsDestination(float DeltaTime);
 	void UpdateNiagaraBlending(float DeltaTime);
 	
 public:
+	UPROPERTY()
 	APingMarker* CurrentPingMarkerToDestroy = nullptr;
 	void MoveTo(const FVector& NewTargetLocation);
 	void ReturnToPlayer(APlayerCharacter* Player);
+	void SetFormType(EFormType NewFormType);
 
 	UNiagaraComponent* GetNiagaraSystem();
 	AActor* GetTargetActor();
 	EFormType GetFormType() const;
-
+	int GetSpawnCount() const;
 	UStaticMeshComponent* GetCollisionMesh() const;
 
 	void SetPingComp(UPlayerPingComponent* PingCompRef);
 	void SetTargetActor(AActor* NewTarget);
-	void SetFormType(EFormType NewFormType);
+	void SetSpawnCount(int NewSpawnCount);
 };

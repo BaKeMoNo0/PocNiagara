@@ -3,6 +3,7 @@
 
 #include "Niagara/CrowdActor.h"
 #include "NiagaraComponent.h"
+#include "Niagara/Component/CrowdPositionGeneratorComponent.h"
 #include "PlayerCharacter/PlayerCharacter.h"
 #include "PlayerCharacter/Component/PlayerPingComponent.h"
 
@@ -21,13 +22,15 @@ ACrowdActor::ACrowdActor() {
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube"));
 	if (CubeMeshAsset.Succeeded()) CollisionMesh->SetStaticMesh(CubeMeshAsset.Object);
 	CollisionMesh->SetupAttachment(SphereMesh);
-	CollisionMesh->SetWorldScale3D(FVector(1.5f, 1.5f, 1.5f));
 	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	
 	NiagaraSystem = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraSystem"));
 	NiagaraSystem->SetupAttachment(SphereMesh);
+	NiagaraSystem->SetFloatParameter(FName("User.SpawnCount"), SpawnCount);
 
+	PositionGeneratorComp = CreateDefaultSubobject<UCrowdPositionGeneratorComponent>(TEXT("CrowdPositionGenerator"));
+	
 	Offset = FVector(-100.f, -90.f, 100.f);
 }
 
@@ -67,6 +70,10 @@ void ACrowdActor::UpdateNiagaraBlending(float DeltaTime) {
 		float Distance = FVector::Dist(GetActorLocation(), Destination);
 
 		if (Distance <= 5.0f && !bHasReachedDestination) {
+			/*if (PositionGeneratorComp && NiagaraSystem) {
+				PositionGeneratorComp->GeneratePositions(SpawnCount, Spacing, static_cast<int32>(FormType));
+				PositionGeneratorComp->PushToNiagara(NiagaraSystem);
+			}*/
 			
 			if (PingComp && PingComp->IsThisMyActiveMarker(CurrentPingMarkerToDestroy)) PingComp->DestroyPingMarker();
 			
@@ -108,30 +115,48 @@ void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
 }
 
 
-AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
-EFormType ACrowdActor::GetFormType() const { return FormType; }
-UStaticMeshComponent* ACrowdActor::GetCollisionMesh() const { return SphereMesh; }
-UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
-
-void ACrowdActor::SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
-void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
-
 void ACrowdActor::SetFormType(EFormType NewFormType){
 	if (FormType == NewFormType) return;
 	FormType = NewFormType;
 	
 	NiagaraSystem->SetIntParameter(FName("User.FormType"), static_cast<int32>(NewFormType));
 
+	const float AvgParticleScale = 0.15f;
+	const float UnitMeshSize = 10.0f;
+	FVector NewScale;
+
 	switch (FormType) {
-	case EFormType::Cube:
-		CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube")));
-		CollisionMesh->SetWorldScale3D(FVector(1.5f));
-		break;
-	case EFormType::Plane:
-		CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane")));
-		CollisionMesh->SetWorldScale3D(FVector(2.0f));
-		break;
-	default:
-		break;
+	case EFormType::Cube: {
+			const int CountPerAxisCube = FMath::CeilToInt(FMath::Pow(SpawnCount, 1.0f / 3.0f));
+			const float CubeSize = CountPerAxisCube * Spacing * AvgParticleScale;
+			NewScale = FVector(CubeSize / UnitMeshSize);
+			CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube")));
+			break;
 	}
+	case EFormType::Plane: {
+			const int CountPerAxisPlane = FMath::CeilToInt(FMath::Sqrt(static_cast<float>(SpawnCount)));
+			const float PlaneSize = CountPerAxisPlane * Spacing * AvgParticleScale;
+			NewScale = FVector(PlaneSize / UnitMeshSize, PlaneSize / UnitMeshSize, 1.0f); // très fin
+			CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane")));
+			break;
+	}
+	default:
+		return;
+	}
+
+	CollisionMesh->SetWorldScale3D(NewScale);
 }
+
+
+
+AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
+EFormType ACrowdActor::GetFormType() const { return FormType; }
+
+int ACrowdActor::GetSpawnCount() const { return SpawnCount; }
+
+UStaticMeshComponent* ACrowdActor::GetCollisionMesh() const { return SphereMesh; }
+UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
+
+void ACrowdActor::SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
+void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
+void ACrowdActor::SetSpawnCount(int NewSpawnCount) { SpawnCount = NewSpawnCount;  }
