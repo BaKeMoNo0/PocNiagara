@@ -27,7 +27,6 @@ ACrowdActor::ACrowdActor() {
 	
 	NiagaraSystem = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraSystem"));
 	NiagaraSystem->SetupAttachment(SphereMesh);
-	NiagaraSystem->SetFloatParameter(FName("User.SpawnCount"), SpawnCount);
 
 	PositionGeneratorComp = CreateDefaultSubobject<UCrowdPositionGeneratorComponent>(TEXT("CrowdPositionGenerator"));
 	
@@ -37,6 +36,8 @@ ACrowdActor::ACrowdActor() {
 
 void ACrowdActor::BeginPlay() {
 	Super::BeginPlay();
+
+	NiagaraSystem->SetFloatParameter(FName("User.SpawnCount"), SpawnCount);
 }
 
 
