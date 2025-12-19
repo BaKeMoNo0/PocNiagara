@@ -46,6 +46,8 @@ void AMainPlayerController::SetupInputComponent() {
 		EnhancedInputComponent->BindAction(SelectPlaneAction, ETriggerEvent::Triggered, this, &AMainPlayerController::SetFormPlane);
 
 		EnhancedInputComponent->BindAction(DesintegrationAction, ETriggerEvent::Triggered, this, &AMainPlayerController::TriggerDesintegration);
+		
+		EnhancedInputComponent->BindAction(FootstepAction, ETriggerEvent::Started, this, &AMainPlayerController::CallFoostep);
 	}
 }
 
@@ -118,6 +120,7 @@ void AMainPlayerController::CallSound() {
 	if (ControlledCharacter) ControlledCharacter->GetPlayerSoundComponent()->CallSound();
 }
 
+
 void AMainPlayerController::AdjustPingDistance(const FInputActionValue& Value) {
 	if (ControlledCharacter && ControlledCharacter->GetPlayerPingComponent()) {
 		ControlledCharacter->GetPlayerPingComponent()->AdjustPingDistance(Value.Get<float>());
@@ -141,6 +144,10 @@ void AMainPlayerController::TriggerDesintegration() {
 			CurrentTargetActor = nullptr;
 		}
 	}
+}
+
+void AMainPlayerController::CallFoostep() {
+	if (ControlledCharacter) ControlledCharacter->TrySpawnFootStep();
 }
 
 ADesintegrationActor* AMainPlayerController::GetCurrentTargetActor() const { return CurrentTargetActor; }

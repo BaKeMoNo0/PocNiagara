@@ -63,7 +63,10 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction *DesintegrationAction;
-
+	
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction *FootstepAction;
+	
 	UPROPERTY()
 	ADesintegrationActor* CurrentTargetActor = nullptr;
 	
@@ -80,6 +83,7 @@ protected:
 	void SetFormCube();
 	void SetFormPlane();
 	void TriggerDesintegration();
+	void CallFoostep();
 	
 	void InitWidget();
 

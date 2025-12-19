@@ -29,7 +29,7 @@ protected:
 	float MinPingDistance = 100.f;
 
 	UPROPERTY(BlueprintReadOnly)
-	float CurrentPingDistance = 500.f;
+	float CurrentPingDistance = 800.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ping")
 	TSubclassOf<APingMarker> PingMarkerClass;

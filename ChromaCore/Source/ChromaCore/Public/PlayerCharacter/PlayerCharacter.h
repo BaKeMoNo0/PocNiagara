@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Niagara/CrowdActor.h"
+#include "Niagara/Footstep.h"
 #include "PlayerCharacter.generated.h"
 
 class UPlayerSoundComponent;
@@ -16,6 +17,8 @@ class UPlayerMovementComponent;
 UCLASS()
 class CHROMACORE_API APlayerCharacter : public ACharacter {
 	GENERATED_BODY()
+	
+	bool bLeftStepNext = false;
 
 public:
 	APlayerCharacter();
@@ -41,14 +44,38 @@ protected:
 	UPROPERTY()
 	ACrowdActor* SpawnedCrowdActor;
 	
+	UPROPERTY(EditAnywhere, Category = "Abilities")
+	TSubclassOf<AFootstep> FootstepActorClass;
+	UPROPERTY()
+	AFootstep* SpawnedFootstepActor;
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
     UAudioComponent* AudioComponent;
 	
+	UPROPERTY(EditAnywhere, Category = "Footstep")
+	float StepDistance = 150.f;
+
+	UPROPERTY(EditAnywhere, Category = "Footstep")
+	float FootOffset = 90.f;
+
+	UPROPERTY(EditAnywhere, Category = "Footstep")
+	float SideOffset = 25.f;
+	
+	UPROPERTY(EditAnywhere, Category = "Footstep")
+	float ForwardOffset = 25.f;
+
+	
 public:
+	void TrySpawnFootStep();
+	
 	UPlayerMovementComponent *GetPlayerMovementComponent() const;
 	UPlayerPingComponent *GetPlayerPingComponent() const;
 	UPlayerSoundComponent *GetPlayerSoundComponent() const;
 	
 	UAudioComponent *GetAudioComponent() const;
 	ACrowdActor *GetCrowdActor() const;
+	
+	bool GetLeftStepNext() const;
+	void SetLeftStepNext(bool value);
+
 };

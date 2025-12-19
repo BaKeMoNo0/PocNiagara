@@ -6,6 +6,7 @@
 #include "Components/AudioComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Niagara/Footstep.h"
 #include "PlayerCharacter/Component/PlayerMovementComponent.h"
 #include "PlayerCharacter/Component/PlayerPingComponent.h"
 #include "PlayerCharacter/Component/PlayerSoundComponent.h"
@@ -73,10 +74,46 @@ void APlayerCharacter::BeginPlay() {
 
 }
 
+
+void APlayerCharacter::TrySpawnFootStep(){
+	if (!FootstepActorClass) return;
+
+	const float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
+
+	FVector SpawnLocation = GetActorLocation();
+	SpawnLocation.Z -= CapsuleHalfHeight + 5.f;
+
+	SpawnLocation += GetActorForwardVector() * ForwardOffset;
+	SpawnLocation += GetActorRightVector() * (bLeftStepNext ? -SideOffset : SideOffset);
+
+	GetWorld()->SpawnActor<AFootstep>(
+		FootstepActorClass,
+		SpawnLocation,
+		FRotator::ZeroRotator
+	);
+	
+	bLeftStepNext = !bLeftStepNext;
+}
+
+
+/*void APlayerCharacter::TrySpawnFootStep() {
+	FVector CharacterLocation = GetActorLocation();
+	FVector Forward = GetActorForwardVector();
+	FVector SpawnLocation = CharacterLocation + Forward * StepDistance - FVector(0.f, 0.f, FootOffset);
+	FVector Right = GetActorRightVector();
+	SpawnLocation += Right * (bLeftStepNext ? -SideOffset : SideOffset);
+	
+	SpawnedFootstepActor = GetWorld()->SpawnActor<AFootstep>(FootstepActorClass, SpawnLocation,FRotator::ZeroRotator);
+	bLeftStepNext = !bLeftStepNext;
+}*/
+
 UPlayerMovementComponent* APlayerCharacter::GetPlayerMovementComponent() const{ return PlayerMovementComponent;}
 UPlayerPingComponent* APlayerCharacter::GetPlayerPingComponent() const { return PlayerPingComponent; }
 UPlayerSoundComponent* APlayerCharacter::GetPlayerSoundComponent() const { return PlayerSoundComponent;}
 UAudioComponent* APlayerCharacter::GetAudioComponent() const { return AudioComponent;}
 ACrowdActor* APlayerCharacter::GetCrowdActor() const { return SpawnedCrowdActor;}
+
+bool APlayerCharacter::GetLeftStepNext() const { return bLeftStepNext; }
+void APlayerCharacter::SetLeftStepNext(bool value) { bLeftStepNext = value; }
 
 
