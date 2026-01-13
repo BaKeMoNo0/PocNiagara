@@ -17,8 +17,6 @@ class UPlayerMovementComponent;
 UCLASS()
 class CHROMACORE_API APlayerCharacter : public ACharacter {
 	GENERATED_BODY()
-	
-	bool bLeftStepNext = false;
 
 public:
 	APlayerCharacter();
@@ -53,20 +51,37 @@ protected:
     UAudioComponent* AudioComponent;
 	
 	UPROPERTY(EditAnywhere, Category = "Footstep")
-	float StepDistance = 150.f;
-
-	UPROPERTY(EditAnywhere, Category = "Footstep")
-	float FootOffset = 90.f;
-
-	UPROPERTY(EditAnywhere, Category = "Footstep")
 	float SideOffset = 25.f;
 	
 	UPROPERTY(EditAnywhere, Category = "Footstep")
-	float ForwardOffset = 25.f;
-
+	float ForwardOffset = 100.f;
 	
+	UPROPERTY(EditAnywhere, Category="Footstep")
+	float StepImpulse = 500.f;
+	UPROPERTY()
+    bool bExpectLeftFoot = true;
+	
+	UPROPERTY(EditAnywhere, Category="Animation")
+	UAnimMontage *AnimStrideFootL;
+	
+	UPROPERTY(EditAnywhere, Category="Animation")
+	UAnimMontage *AnimStrideFootR;
+	
+	//timeBetweenSameFootContacts = strideDistancePerStep / characterVelocity
+	//timeBetweenSameFootContacts = (0.85 meters) / (playerSpeed m/s)
+	//strideStepDuration = timeBetweenSameFootContacts
+	//inputWindow = clamp( strideStepDuration * 0.35 , 150ms , 400ms )
+	//inputBuffer = clamp( strideStepDuration * 0.1  ,  50ms , 120ms )
+	/*
+		OnNotify("RightFoot_Contact"):
+		if lastRightFootTime > 0:
+			timeBetweenSameFootContacts = currentTime - lastRightFootTime
+		lastRightFootTime = currentTime
+	 */
+
+
 public:
-	void TrySpawnFootStep();
+	void TrySpawnFootStep(bool bIsLeftFoot);
 	
 	UPlayerMovementComponent *GetPlayerMovementComponent() const;
 	UPlayerPingComponent *GetPlayerPingComponent() const;
@@ -74,8 +89,4 @@ public:
 	
 	UAudioComponent *GetAudioComponent() const;
 	ACrowdActor *GetCrowdActor() const;
-	
-	bool GetLeftStepNext() const;
-	void SetLeftStepNext(bool value);
-
 };

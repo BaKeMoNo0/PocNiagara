@@ -75,7 +75,9 @@ void APlayerCharacter::BeginPlay() {
 }
 
 
-void APlayerCharacter::TrySpawnFootStep(){
+void APlayerCharacter::TrySpawnFootStep(bool bIsLeftFoot) {
+	//if (bIsLeftFoot != bExpectLeftFoot) return;
+
 	if (!FootstepActorClass) return;
 
 	const float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
@@ -84,36 +86,32 @@ void APlayerCharacter::TrySpawnFootStep(){
 	SpawnLocation.Z -= CapsuleHalfHeight + 5.f;
 
 	SpawnLocation += GetActorForwardVector() * ForwardOffset;
-	SpawnLocation += GetActorRightVector() * (bLeftStepNext ? -SideOffset : SideOffset);
-
+	SpawnLocation += GetActorRightVector() * (bIsLeftFoot ? -SideOffset : SideOffset);
+	
+	if (bIsLeftFoot) 
+		PlayAnimMontage(AnimStrideFootL, 0.4);
+	else 
+		PlayAnimMontage(AnimStrideFootR, 0.4);
+	
+	LaunchCharacter(
+		GetActorForwardVector() * StepImpulse,
+		false,
+		false
+	);
+	
 	GetWorld()->SpawnActor<AFootstep>(
 		FootstepActorClass,
-		SpawnLocation,
+		SpawnLocation,	
 		FRotator::ZeroRotator
 	);
 	
-	bLeftStepNext = !bLeftStepNext;
+	bExpectLeftFoot = !bExpectLeftFoot;
 }
-
-
-/*void APlayerCharacter::TrySpawnFootStep() {
-	FVector CharacterLocation = GetActorLocation();
-	FVector Forward = GetActorForwardVector();
-	FVector SpawnLocation = CharacterLocation + Forward * StepDistance - FVector(0.f, 0.f, FootOffset);
-	FVector Right = GetActorRightVector();
-	SpawnLocation += Right * (bLeftStepNext ? -SideOffset : SideOffset);
-	
-	SpawnedFootstepActor = GetWorld()->SpawnActor<AFootstep>(FootstepActorClass, SpawnLocation,FRotator::ZeroRotator);
-	bLeftStepNext = !bLeftStepNext;
-}*/
 
 UPlayerMovementComponent* APlayerCharacter::GetPlayerMovementComponent() const{ return PlayerMovementComponent;}
 UPlayerPingComponent* APlayerCharacter::GetPlayerPingComponent() const { return PlayerPingComponent; }
 UPlayerSoundComponent* APlayerCharacter::GetPlayerSoundComponent() const { return PlayerSoundComponent;}
 UAudioComponent* APlayerCharacter::GetAudioComponent() const { return AudioComponent;}
 ACrowdActor* APlayerCharacter::GetCrowdActor() const { return SpawnedCrowdActor;}
-
-bool APlayerCharacter::GetLeftStepNext() const { return bLeftStepNext; }
-void APlayerCharacter::SetLeftStepNext(bool value) { bLeftStepNext = value; }
 
 

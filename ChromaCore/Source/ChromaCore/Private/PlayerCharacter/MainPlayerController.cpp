@@ -47,7 +47,7 @@ void AMainPlayerController::SetupInputComponent() {
 
 		EnhancedInputComponent->BindAction(DesintegrationAction, ETriggerEvent::Triggered, this, &AMainPlayerController::TriggerDesintegration);
 		
-		EnhancedInputComponent->BindAction(FootstepAction, ETriggerEvent::Started, this, &AMainPlayerController::CallFoostep);
+		EnhancedInputComponent->BindAction(FootstepAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallFoostep);
 	}
 }
 
@@ -146,8 +146,16 @@ void AMainPlayerController::TriggerDesintegration() {
 	}
 }
 
-void AMainPlayerController::CallFoostep() {
-	if (ControlledCharacter) ControlledCharacter->TrySpawnFootStep();
+void AMainPlayerController::CallFoostep(const FInputActionValue& Value) {
+	if (!ControlledCharacter) return;
+	
+	const float Axis = Value.Get<float>();
+	UE_LOG(LogTemp, Warning, TEXT("Footstep Axis = %f"), Axis);
+	
+	if (FMath::IsNearlyZero(Axis)) return;
+	const bool bIsLeftFoot = Axis < 0.f;
+	
+	ControlledCharacter->TrySpawnFootStep(bIsLeftFoot);
 }
 
 ADesintegrationActor* AMainPlayerController::GetCurrentTargetActor() const { return CurrentTargetActor; }

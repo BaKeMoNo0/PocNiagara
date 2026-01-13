@@ -83,7 +83,7 @@ protected:
 	void SetFormCube();
 	void SetFormPlane();
 	void TriggerDesintegration();
-	void CallFoostep();
+	void CallFoostep(const FInputActionValue& Value);
 	
 	void InitWidget();
 
