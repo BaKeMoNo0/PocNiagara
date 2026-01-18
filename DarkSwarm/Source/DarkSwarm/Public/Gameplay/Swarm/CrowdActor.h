@@ -7,8 +7,6 @@
 #include "./FormType.h"
 #include "CrowdActor.generated.h"
 
-
-class UCrowdPositionGeneratorComponent;
 class UPlayerPingComponent;
 class APlayerCharacter;
 class APingMarker;
@@ -27,9 +25,11 @@ class DARKSWARM_API ACrowdActor : public AActor {
 
 	float CurrentBlendAlpha = 0.0f;
 	float BlendAlphaTarget = 0.9f;
-	int SpawnCount = 125;
+	int RestSpawnCount = 50;
+	int TotalSpawnCount = 125;
 	float Spacing = 15.0f;
-
+	float RestMeshUniformScale = 0.07f;
+	float ActionMeshUniformScale = 0.15f;
 	
 public:
 	ACrowdActor();
@@ -57,9 +57,6 @@ protected:
 	UNiagaraComponent* NiagaraSystem;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	UCrowdPositionGeneratorComponent* PositionGeneratorComp;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EFormType FormType = EFormType::Cube;
 
 	
@@ -78,10 +75,11 @@ public:
 	UNiagaraComponent* GetNiagaraSystem();
 	AActor* GetTargetActor();
 	EFormType GetFormType() const;
-	int GetSpawnCount() const;
+	int GetRestSpawnCount() const;
+	int GetTotalSpawnCount() const;
 	UStaticMeshComponent* GetCollisionMesh() const;
 
 	void SetPingComp(UPlayerPingComponent* PingCompRef);
 	void SetTargetActor(AActor* NewTarget);
-	void SetSpawnCount(int NewSpawnCount);
+	void SetTotalSpawnCount(int NewSpawnCount);
 };

@@ -18,9 +18,9 @@ APlayerCharacter::APlayerCharacter() {
 
 	SpringArmComp = CreateDefaultSubobject<USpringArmComponent>(TEXT("Spring Arm Component"));
 	SpringArmComp->SetupAttachment(RootComponent);
-	SpringArmComp->TargetArmLength = 300.f;
+	SpringArmComp->TargetArmLength = 350.f;
 	SpringArmComp->bUsePawnControlRotation = true;
-	SpringArmComp->SocketOffset    = FVector(-120.f, 0.f, 115.f);
+	SpringArmComp->SocketOffset    = FVector(-140.f, 0.f, 140.f);
 
 	CameraComp = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComp->SetupAttachment(SpringArmComp);
@@ -61,7 +61,8 @@ void APlayerCharacter::BeginPlay() {
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Owner = this;
 
-		FVector SpawnLocation = GetActorLocation() + FVector(-100.f, -90.f, 100.f);
+		FVector SpawnLocation = GetActorLocation() + FVector(-200.f, -180.f, 180.f);
+;
 		FRotator SpawnRotation = FRotator::ZeroRotator;
 
 		SpawnedCrowdActor = GetWorld()->SpawnActor<ACrowdActor>(CrowdActorClass, SpawnLocation, SpawnRotation, SpawnParams);

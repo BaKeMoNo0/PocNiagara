@@ -3,7 +3,6 @@
 
 #include "Gameplay/Swarm/CrowdActor.h"
 #include "NiagaraComponent.h"
-#include "Gameplay/Swarm/Component/CrowdPositionGeneratorComponent.h"
 #include "Gameplay/Player/PlayerCharacter.h"
 #include "Gameplay/Player/Component/PlayerPingComponent.h"
 
@@ -27,17 +26,18 @@ ACrowdActor::ACrowdActor() {
 	
 	NiagaraSystem = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraSystem"));
 	NiagaraSystem->SetupAttachment(SphereMesh);
-
-	PositionGeneratorComp = CreateDefaultSubobject<UCrowdPositionGeneratorComponent>(TEXT("CrowdPositionGenerator"));
 	
-	Offset = FVector(-100.f, -90.f, 100.f);
+	Offset = FVector(-200.f, -180.f, 180.f);
 }
 
 
 void ACrowdActor::BeginPlay() {
 	Super::BeginPlay();
 
-	NiagaraSystem->SetFloatParameter(FName("User.SpawnCount"), SpawnCount);
+	NiagaraSystem->SetIntParameter(FName("User.SpawnCount"), TotalSpawnCount);
+	NiagaraSystem->SetFloatParameter(FName("User.Spacing"), Spacing);
+	NiagaraSystem->SetFloatParameter(FName("User.MeshUniformScale"), RestMeshUniformScale);
+	NiagaraSystem->SetIntParameter("User.ActiveParticleCount", RestSpawnCount);
 }
 
 
@@ -71,22 +71,21 @@ void ACrowdActor::UpdateNiagaraBlending(float DeltaTime) {
 		float Distance = FVector::Dist(GetActorLocation(), Destination);
 
 		if (Distance <= 5.0f && !bHasReachedDestination) {
-			/*if (PositionGeneratorComp && NiagaraSystem) {
-				PositionGeneratorComp->GeneratePositions(SpawnCount, Spacing, static_cast<int32>(FormType));
-				PositionGeneratorComp->PushToNiagara(NiagaraSystem);
-			}*/
-			
 			if (PingComp && PingComp->IsThisMyActiveMarker(CurrentPingMarkerToDestroy)) PingComp->DestroyPingMarker();
 			
 			bHasReachedDestination = true;
 			if (!bIsSlowingDown) bIsSlowingDown = true;
 		}
 
+		NiagaraSystem->SetIntParameter("User.ActiveParticleCount", TotalSpawnCount);
+		NiagaraSystem->SetFloatParameter("User.MeshUniformScale", ActionMeshUniformScale);
+
 		if (bIsSlowingDown) {
 			BlendAlphaTarget = 0.9;
-			CurrentBlendAlpha = FMath::Clamp(FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.25f),0.0f, 0.9f);
-			NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), CurrentBlendAlpha);
+			CurrentBlendAlpha = FMath::Clamp(FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.25f),0.0f, BlendAlphaTarget);
+			NiagaraSystem->SetFloatParameter(FName("User.CurrentBlendAlpha"), CurrentBlendAlpha);
 			NiagaraSystem->SetVectorParameter(FName("User.SpherePos"), SphereMesh->GetComponentLocation());
+			
 			if (CurrentBlendAlpha > 0.2f) {
 				CollisionMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 				CollisionMesh->SetCollisionResponseToAllChannels(ECR_Block);
@@ -111,7 +110,9 @@ void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
 	CurrentBlendAlpha = 0.0f;
 	bShouldMove = false;
 	bIsSlowingDown = false;
-	NiagaraSystem->SetFloatParameter(FName("User.CubeBlendAlpha"), 0.0f);
+	NiagaraSystem->SetFloatParameter(FName("User.CurrentBlendAlpha"), CurrentBlendAlpha);
+	NiagaraSystem->SetIntParameter("User.ActiveParticleCount", RestSpawnCount);
+	NiagaraSystem->SetFloatParameter(FName("User.MeshUniformScale"), RestMeshUniformScale);
 	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
@@ -122,27 +123,26 @@ void ACrowdActor::SetFormType(EFormType NewFormType){
 	
 	NiagaraSystem->SetIntParameter(FName("User.FormType"), static_cast<int32>(NewFormType));
 
-	const float AvgParticleScale = 0.15f;
 	const float UnitMeshSize = 10.0f;
 	FVector NewScale;
 
 	switch (FormType) {
-	case EFormType::Cube: {
-			const int CountPerAxisCube = FMath::CeilToInt(FMath::Pow(SpawnCount, 1.0f / 3.0f));
-			const float CubeSize = CountPerAxisCube * Spacing * AvgParticleScale;
-			NewScale = FVector(CubeSize / UnitMeshSize);
-			CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube")));
-			break;
-	}
-	case EFormType::Plane: {
-			const int CountPerAxisPlane = FMath::CeilToInt(FMath::Sqrt(static_cast<float>(SpawnCount)));
-			const float PlaneSize = CountPerAxisPlane * Spacing * AvgParticleScale;
-			NewScale = FVector(PlaneSize / UnitMeshSize, PlaneSize / UnitMeshSize, 1.0f); // très fin
-			CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane")));
-			break;
-	}
-	default:
-		return;
+		case EFormType::Cube: {
+				const int CountPerAxisCube = FMath::CeilToInt(FMath::Pow(TotalSpawnCount, 1.0f / 3.0f));
+				const float CubeSize = CountPerAxisCube * Spacing * ActionMeshUniformScale;
+				NewScale = FVector(CubeSize / UnitMeshSize);
+				CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube")));
+				break;
+		}
+		case EFormType::Plane: {
+				const int CountPerAxisPlane = FMath::CeilToInt(FMath::Sqrt(static_cast<float>(TotalSpawnCount)));
+				const float PlaneSize = CountPerAxisPlane * Spacing * ActionMeshUniformScale;
+				NewScale = FVector(PlaneSize / UnitMeshSize, PlaneSize / UnitMeshSize, 1.0f); // très fin
+				CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane")));
+				break;
+		}
+		default:
+			return;
 	}
 
 	CollisionMesh->SetWorldScale3D(NewScale);
@@ -153,11 +153,12 @@ void ACrowdActor::SetFormType(EFormType NewFormType){
 AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
 EFormType ACrowdActor::GetFormType() const { return FormType; }
 
-int ACrowdActor::GetSpawnCount() const { return SpawnCount; }
+int ACrowdActor::GetRestSpawnCount() const { return RestSpawnCount; }
+int ACrowdActor::GetTotalSpawnCount() const { return TotalSpawnCount; }
 
 UStaticMeshComponent* ACrowdActor::GetCollisionMesh() const { return SphereMesh; }
 UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
 
 void ACrowdActor::SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
 void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
-void ACrowdActor::SetSpawnCount(int NewSpawnCount) { SpawnCount = NewSpawnCount;  }
+void ACrowdActor::SetTotalSpawnCount(int NewSpawnCount) { TotalSpawnCount = NewSpawnCount;  }
