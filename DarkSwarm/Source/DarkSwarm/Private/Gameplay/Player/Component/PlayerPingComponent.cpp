@@ -3,13 +3,19 @@
 
 #include "Gameplay/Player/Component/PlayerPingComponent.h"
 
+#include "Core/DarkSwarmGameMode.h"
 #include "Gameplay/World/Interactive/PingMarker.h"
-#include "Gameplay/Player/PlayerCharacter.h"
+#include "Gameplay/Swarm/CrowdActor.h"
 
 
 UPlayerPingComponent::UPlayerPingComponent(){
 	PrimaryComponentTick.bCanEverTick = true;
 	PrimaryComponentTick.bStartWithTickEnabled = false;
+}
+
+void UPlayerPingComponent::BeginPlay() {
+	Super::BeginPlay();
+	GM = Cast<ADarkSwarmGameMode>(GetWorld()->GetAuthGameMode());
 }
 
 void UPlayerPingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
@@ -37,10 +43,9 @@ void UPlayerPingComponent::StartAiming() {
 		ActivePingMarker = nullptr;
 	}
 
-
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
+	
 	EFormType FormType = EFormType::Cube;
-	if (PlayerCharacter && PlayerCharacter->GetCrowdActor()) FormType = PlayerCharacter->GetCrowdActor()->GetFormType();
+	if (GM && GM->GetCrowdActor()) FormType = GM->GetCrowdActor()->GetFormType();
 	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetOwner();
@@ -60,10 +65,9 @@ void UPlayerPingComponent::StopAiming() {
 	bIsAiming = false;
 	SetComponentTickEnabled(false);
 
-	APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
-	if (PlayerCharacter && PlayerCharacter->GetCrowdActor()) {
-		PlayerCharacter->GetCrowdActor()->MoveTo(LastValidLocation);
-		PlayerCharacter->GetCrowdActor()->CurrentPingMarkerToDestroy = ActivePingMarker;
+	if (GM && GM->GetCrowdActor()) {
+		GM->GetCrowdActor()->MoveTo(LastValidLocation);
+		GM->GetCrowdActor()->CurrentPingMarkerToDestroy = ActivePingMarker;
 	}
 }
 
@@ -84,11 +88,10 @@ void UPlayerPingComponent::TraceFromCrosshair() {
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(GetOwner());
 		
-		APlayerCharacter* PlayerCharacter = Cast<APlayerCharacter>(GetOwner());
-		if (IsValid(ActivePingMarker) && PlayerCharacter && PlayerCharacter->GetCrowdActor()) {
+		if (IsValid(ActivePingMarker) && GM && GM->GetCrowdActor()) {
 			Params.AddIgnoredActor(ActivePingMarker);
-			Params.AddIgnoredActor(PlayerCharacter->GetCrowdActor());
-			Params.AddIgnoredActors(PlayerCharacter->GetCrowdActor()->Children);
+			Params.AddIgnoredActor(GM->GetCrowdActor());
+			Params.AddIgnoredActors(GM->GetCrowdActor()->Children);
 		}
 
 		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params)) {

@@ -6,17 +6,17 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
+#include "Core/DarkSwarmGameMode.h"
 #include "Gameplay/Player/Component/PlayerMovementComponent.h"
 #include "Gameplay/Player/Component/PlayerPingComponent.h"
 #include "Gameplay/Player/Component/PlayerSoundComponent.h"
 #include "Gameplay/World/Interactive/DisintegratableComponent.h"
 #include "Gameplay/World/Interactive//DesintegrationActor.h"
-#include "Gameplay/Swarm/CrowdActor.h"
+
 
 void AMainPlayerController::BeginPlay() {
 	Super::BeginPlay();
 
-	//ControlledCharacter = Cast<APlayerCharacter>(GetPawn());
 	InitWidget();
 }
 
@@ -25,7 +25,7 @@ void AMainPlayerController::SetupInputComponent() {
 
 	if (UEnhancedInputLocalPlayerSubsystem *Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(
 			GetLocalPlayer())) {
-		Subsystem->AddMappingContext(InputMappingContext, 0);
+		Subsystem->AddMappingContext(InputMappingContext,0);
 	}
 
 	if (UEnhancedInputComponent *EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent)) {
@@ -56,20 +56,29 @@ void AMainPlayerController::OnPossess(APawn* InPawn) {
 	Super::OnPossess(InPawn);
 	
 	ControlledCharacter = Cast<APlayerCharacter>(InPawn);
+	if (!ControlledCharacter) UE_LOG(LogTemp, Error, TEXT("PlayerController possessed non PlayerCharacter pawn"));
+	
+	ADarkSwarmGameMode* GM = Cast<ADarkSwarmGameMode>(GetWorld()->GetAuthGameMode());
+	Swarm = GM->GetCrowdActor();
+	//UE_LOG(LogTemp, Error, TEXT("Swarm: %s"), *Swarm->GetName());
+	if (!Swarm) return;
 
-    if (!ControlledCharacter){
-        UE_LOG(LogTemp, Error, TEXT("PlayerController possessed non PlayerCharacter pawn"));
-    }
+	//FVector SpawnOffset(-200.f, -180.f, 180.f);
+	//Swarm->SetActorLocation(ControlledCharacter->GetActorLocation() + SpawnOffset);
+
+	Swarm->SetTargetActor(ControlledCharacter);
+	Swarm->SetPingComp(ControlledCharacter->GetPlayerPingComponent());
+	if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Swarm 3"));
+	
 }
 
 
 void AMainPlayerController::InitWidget() {
 	if (MainMenuWidgetClass) {
-		if (UUserWidget *MainMenuWidget = CreateWidget<UUserWidget>(this, MainMenuWidgetClass)) {
-			if (MainMenuWidget) {
-				MainMenuWidget->AddToViewport();
-				MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
-			}
+		MainMenuWidget = CreateWidget<UUserWidget>(this, MainMenuWidgetClass);
+		if (MainMenuWidget) {
+			MainMenuWidget->AddToViewport();
+			MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
 }
@@ -122,8 +131,8 @@ void AMainPlayerController::CallStopAiming() {
 }
 
 void AMainPlayerController::CallBackActor() {
-	if (ControlledCharacter) {
-		ControlledCharacter->GetCrowdActor()->ReturnToPlayer(ControlledCharacter);
+	if (ControlledCharacter && Swarm) {
+		Swarm->ReturnToPlayer(ControlledCharacter);
 	}
 }
 
@@ -139,11 +148,11 @@ void AMainPlayerController::AdjustPingDistance(const FInputActionValue& Value) {
 }
 
 void AMainPlayerController::SetFormCube() {
-	ControlledCharacter->GetCrowdActor()->SetFormType(EFormType::Cube);
+	Swarm->SetFormType(EFormType::Cube);
 }
 
 void AMainPlayerController::SetFormPlane() {
-	ControlledCharacter->GetCrowdActor()->SetFormType(EFormType::Plane);
+	Swarm->SetFormType(EFormType::Plane);
 }
 
 

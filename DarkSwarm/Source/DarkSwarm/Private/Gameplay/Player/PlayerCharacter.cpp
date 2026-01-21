@@ -1,10 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Gameplay/Player/PlayerCharacter.h"
 
 #include "Components/AudioComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Core/DarkSwarmGameMode.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Gameplay/Swarm/SwarmPlatform.h"
 #include "Gameplay/Player/Component/PlayerMovementComponent.h"
@@ -56,23 +54,7 @@ void APlayerCharacter::BeginPlay() {
 	PlayerMovementComponent = FindComponentByClass<UPlayerMovementComponent>();
 	PlayerPingComponent = FindComponentByClass<UPlayerPingComponent>();
 	PlayerSoundComponent = FindComponentByClass<UPlayerSoundComponent>();
-	
-	if (!SpawnedCrowdActor && CrowdActorClass) {
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-
-		FVector SpawnLocation = GetActorLocation() + FVector(-200.f, -180.f, 180.f);
-;
-		FRotator SpawnRotation = FRotator::ZeroRotator;
-
-		SpawnedCrowdActor = GetWorld()->SpawnActor<ACrowdActor>(CrowdActorClass, SpawnLocation, SpawnRotation, SpawnParams);
-
-		if (SpawnedCrowdActor) {
-			SpawnedCrowdActor->SetTargetActor(this);
-			SpawnedCrowdActor->SetPingComp(PlayerPingComponent);
-		}
-	}
-
+	LastCheckpointLocation = GetActorLocation();
 }
 
 
@@ -109,10 +91,27 @@ void APlayerCharacter::TrySpawnFootStep(bool bIsLeftFoot) {
 	bExpectLeftFoot = !bExpectLeftFoot;
 }
 
-UPlayerMovementComponent* APlayerCharacter::GetPlayerMovementComponent() const{ return PlayerMovementComponent;}
+void APlayerCharacter::Die() {
+	if (bIsDead) return;
+
+	bIsDead = true;
+	
+	GetCharacterMovement()->DisableMovement();
+	SetActorEnableCollision(false);
+	
+	if (ADarkSwarmGameMode* GM = Cast<ADarkSwarmGameMode>(GetWorld()->GetAuthGameMode())) GM->OnPlayerDied(this);
+}
+
+UPlayerMovementComponent* APlayerCharacter::GetPlayerMovementComponent() const { return PlayerMovementComponent;}
 UPlayerPingComponent* APlayerCharacter::GetPlayerPingComponent() const { return PlayerPingComponent; }
 UPlayerSoundComponent* APlayerCharacter::GetPlayerSoundComponent() const { return PlayerSoundComponent;}
 UAudioComponent* APlayerCharacter::GetAudioComponent() const { return AudioComponent;}
-ACrowdActor* APlayerCharacter::GetCrowdActor() const { return SpawnedCrowdActor;}
+FVector APlayerCharacter::GetLastCheckpointLocation() const { return LastCheckpointLocation; }
+bool APlayerCharacter::GetIsDead() const { return bIsDead; }
+
+
+void APlayerCharacter::SetLastCheckpointLocation(FVector NewRespawnLocation) { LastCheckpointLocation = NewRespawnLocation; }
+
+
 
 

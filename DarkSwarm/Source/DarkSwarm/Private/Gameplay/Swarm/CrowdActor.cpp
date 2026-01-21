@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Gameplay/Swarm/CrowdActor.h"
 #include "NiagaraComponent.h"
 #include "Gameplay/Player/PlayerCharacter.h"
@@ -28,6 +25,8 @@ ACrowdActor::ACrowdActor() {
 	NiagaraSystem->SetupAttachment(SphereMesh);
 	
 	Offset = FVector(-200.f, -180.f, 180.f);
+	TargetLocation = FVector(0,0,0);
+	
 }
 
 
@@ -96,6 +95,35 @@ void ACrowdActor::UpdateNiagaraBlending(float DeltaTime) {
 }
 
 
+void ACrowdActor::ConsumePlayer(APlayerCharacter* Player, FOnSwarmConsumeFinished OnFinished) {
+	OnConsumeFinished = OnFinished;
+	
+	//PlayConsumeFX(Player->GetActorLocation());
+}
+
+
+
+void ACrowdActor::OnConsumeFXFinished() {
+	if (OnConsumeFinished.IsBound()) OnConsumeFinished.Execute();
+	OnConsumeFinished.Unbind();
+}
+
+
+
+void ACrowdActor::OnPlayerRespawn(AActor* NewPlayer) {
+	SetActorLocation(NewPlayer->GetActorLocation());
+	TargetActor = NewPlayer;
+
+	//PlayReformFX();
+
+	AttachToActor(
+		NewPlayer,
+		FAttachmentTransformRules::SnapToTargetNotIncludingScale
+	);
+}
+
+
+
 void ACrowdActor::MoveTo(const FVector& NewTargetLocation) {
 	TargetActor = nullptr;
 	TargetLocation = NewTargetLocation;
@@ -160,5 +188,10 @@ UStaticMeshComponent* ACrowdActor::GetCollisionMesh() const { return SphereMesh;
 UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
 
 void ACrowdActor::SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
-void ACrowdActor::SetTargetActor(AActor* NewTarget) { TargetActor = NewTarget; }
 void ACrowdActor::SetTotalSpawnCount(int NewSpawnCount) { TotalSpawnCount = NewSpawnCount;  }
+
+void ACrowdActor::SetTargetActor(AActor* NewTarget) {
+	TargetActor = NewTarget;
+	
+	if (TargetActor) SetActorLocation(TargetActor->GetActorLocation() + Offset);
+}

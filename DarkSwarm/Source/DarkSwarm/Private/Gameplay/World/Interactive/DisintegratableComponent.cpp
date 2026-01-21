@@ -1,7 +1,8 @@
 #include "Gameplay/World/Interactive/DisintegratableComponent.h"
 #include "Gameplay/World/Interactive/DesintegrationActor.h"
 #include "NiagaraComponent.h"
-#include "Gameplay/Player/PlayerCharacter.h"
+#include "Core/DarkSwarmGameMode.h"
+#include "Gameplay/Swarm/CrowdActor.h"
 
 UDisintegratableComponent::UDisintegratableComponent() {
 	PrimaryComponentTick.bCanEverTick = true;
@@ -11,6 +12,8 @@ UDisintegratableComponent::UDisintegratableComponent() {
 
 void UDisintegratableComponent::BeginPlay() {
 	Super::BeginPlay();
+	
+	GM = Cast<ADarkSwarmGameMode>(GetWorld()->GetAuthGameMode());
 	
 	Owner = Cast<ADesintegrationActor>(GetOwner());
 	if (Owner && Owner->GetMesh()) {
@@ -25,12 +28,9 @@ void UDisintegratableComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	
 	if (bIsDisintegrating && Owner->GetNiagaraComp()) {
 
-		if (Owner->GetPlayerCharacter()) {
-			
-			if (Owner->GetPlayerCharacter()->GetCrowdActor() && Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()) {
-				CurrentCrowdLocation = Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()->GetComponentLocation();
+		if (GM && GM->GetCrowdActor() && GM->GetCrowdActor()->GetCollisionMesh()) {
+				CurrentCrowdLocation = GM->GetCrowdActor()->GetCollisionMesh()->GetComponentLocation();
 				Owner->GetNiagaraComp()->SetVectorParameter(FName("User.AttractionTarget"), CurrentCrowdLocation);
-			}
 		}
 	}
 
@@ -44,12 +44,10 @@ void UDisintegratableComponent::TriggerDisintegration() {
 
 			Owner->GetNiagaraComp()->Activate(true);
 
-			if (Owner->GetPlayerCharacter()) {
-				if (Owner->GetPlayerCharacter()->GetCrowdActor() && Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()) {
-					CurrentCrowdLocation = Owner->GetPlayerCharacter()->GetCrowdActor()->GetCollisionMesh()->GetComponentLocation();
+			if (GM && GM->GetCrowdActor() && GM->GetCrowdActor()->GetCollisionMesh()) {
+					CurrentCrowdLocation = GM->GetCrowdActor()->GetCollisionMesh()->GetComponentLocation();
 					//DrawDebugSphere(GetWorld(), CurrentCrowdLocation, 20.f, 12, FColor::Green, false, 2.0f);
 					Niagara->SetVectorParameter(FName("User.AttractionTarget"), CurrentCrowdLocation);
-				}
 			}
 			Niagara->SetFloatParameter(FName("User.AttractionStrength"), 50.0f);
 			Niagara->SetFloatParameter(FName("User.NoiseForceDesintegration"), 50.0f);
@@ -60,11 +58,11 @@ void UDisintegratableComponent::TriggerDisintegration() {
 				[this, Niagara]() {
 					bIsDisintegrating = false;
 					Niagara->Deactivate();
-					int SpawnCount = Owner->GetPlayerCharacter()->GetCrowdActor()->GetTotalSpawnCount();
-					Owner->GetPlayerCharacter()->GetCrowdActor()->SetTotalSpawnCount(SpawnCount + 1000);
-					Owner->GetPlayerCharacter()->GetCrowdActor()->GetNiagaraSystem()->SetIntParameter(FName("User.SpawnCount"), SpawnCount);
-					Owner->GetPlayerCharacter()->GetCrowdActor()->SetFormType(Owner->GetPlayerCharacter()->GetCrowdActor()->GetFormType());
-					Owner->GetPlayerCharacter()->GetCrowdActor()->GetNiagaraSystem()->ReinitializeSystem();
+					int SpawnCount = GM->GetCrowdActor()->GetTotalSpawnCount();
+					GM->GetCrowdActor()->SetTotalSpawnCount(SpawnCount + 1000);
+					GM->GetCrowdActor()->GetNiagaraSystem()->SetIntParameter(FName("User.SpawnCount"), SpawnCount);
+					GM->GetCrowdActor()->SetFormType(GM->GetCrowdActor()->GetFormType());
+					GM->GetCrowdActor()->GetNiagaraSystem()->ReinitializeSystem();
 				},
 				5.0f,
 				false

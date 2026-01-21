@@ -6,6 +6,7 @@ APingMarker::APingMarker() {
 	PrimaryActorTick.bCanEverTick = false;
 
 	VisualMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisualMesh"));
+	RootComponent = VisualMesh;
 	VisualMesh->SetupAttachment(RootComponent);
 	VisualMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }

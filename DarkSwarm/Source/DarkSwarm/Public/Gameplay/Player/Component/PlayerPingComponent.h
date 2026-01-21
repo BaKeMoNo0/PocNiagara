@@ -5,6 +5,7 @@
 #include "PlayerPingComponent.generated.h"
 
 
+class ADarkSwarmGameMode;
 class APingMarker;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -20,8 +21,12 @@ public:
 	UPlayerPingComponent();
 
 protected:
+	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+	UPROPERTY()
+	ADarkSwarmGameMode* GM;
+	
 	UPROPERTY(EditAnywhere, Category = "Ping")
 	float MaxPingDistance = 1000.f;
 

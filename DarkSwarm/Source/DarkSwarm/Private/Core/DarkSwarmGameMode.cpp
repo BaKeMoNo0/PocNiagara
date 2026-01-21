@@ -1,6 +1,44 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Core/DarkSwarmGameMode.h"
 
+
 ADarkSwarmGameMode::ADarkSwarmGameMode(){}
+
+void ADarkSwarmGameMode::BeginPlay() {
+	Super::BeginPlay();
+	
+	CrowdActor = GetWorld()->SpawnActor<ACrowdActor>(CrowdActorClass);
+}
+
+
+void ADarkSwarmGameMode::HandleRespawn() {
+	if (!PendingDeadPlayer) return;
+
+	AController* Controller = PendingDeadPlayer->GetController();
+	FVector RespawnLocation = PendingDeadPlayer->GetLastCheckpointLocation() + FVector(0,0,90);
+
+	PendingDeadPlayer->Destroy();
+
+	APlayerCharacter* NewPlayer = GetWorld()->SpawnActor<APlayerCharacter>(DefaultPawnClass, RespawnLocation,FRotator::ZeroRotator);
+
+	if (Controller && NewPlayer) Controller->Possess(NewPlayer);
+	
+	if (ACrowdActor* Swarm = CrowdActor) Swarm->OnPlayerRespawn(NewPlayer);
+	
+	PendingDeadPlayer = nullptr;
+}
+
+
+void ADarkSwarmGameMode::OnPlayerDied(APlayerCharacter* DeadPlayer) {
+	if (!DeadPlayer) return;
+	
+	PendingDeadPlayer = DeadPlayer;
+
+	if (CrowdActor) {
+		CrowdActor->ConsumePlayer(
+			DeadPlayer,
+			CrowdActor->OnConsumeFinished
+		);
+	}
+}
+
+ACrowdActor* ADarkSwarmGameMode::GetCrowdActor() const { return CrowdActor; }

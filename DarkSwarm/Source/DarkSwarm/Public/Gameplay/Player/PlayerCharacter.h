@@ -6,7 +6,6 @@
 #include "Camera/CameraComponent.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Gameplay/Swarm/CrowdActor.h"
 #include "Gameplay/Swarm/SwarmPlatform.h"
 #include "PlayerCharacter.generated.h"
 
@@ -37,10 +36,7 @@ protected:
 	UPROPERTY()
 	UPlayerSoundComponent *PlayerSoundComponent;
 
-	UPROPERTY(EditAnywhere, Category = "Abilities")
-	TSubclassOf<ACrowdActor> CrowdActorClass;
-	UPROPERTY()
-	ACrowdActor* SpawnedCrowdActor;
+	
 	
 	UPROPERTY(EditAnywhere, Category = "Abilities")
 	TSubclassOf<ASwarmPlatform> FootstepActorClass;
@@ -67,26 +63,25 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Animation")
 	UAnimMontage *AnimStrideFootR;
 	
-	//timeBetweenSameFootContacts = strideDistancePerStep / characterVelocity
-	//timeBetweenSameFootContacts = (0.85 meters) / (playerSpeed m/s)
-	//strideStepDuration = timeBetweenSameFootContacts
-	//inputWindow = clamp( strideStepDuration * 0.35 , 150ms , 400ms )
-	//inputBuffer = clamp( strideStepDuration * 0.1  ,  50ms , 120ms )
-	/*
-		OnNotify("RightFoot_Contact"):
-		if lastRightFootTime > 0:
-			timeBetweenSameFootContacts = currentTime - lastRightFootTime
-		lastRightFootTime = currentTime
-	 */
+	UPROPERTY()
+	FVector LastCheckpointLocation;
+	
+	UPROPERTY()
+	bool bIsDead = false;
 
 
 public:
 	void TrySpawnFootStep(bool bIsLeftFoot);
+	void Die();
 	
 	UPlayerMovementComponent *GetPlayerMovementComponent() const;
 	UPlayerPingComponent *GetPlayerPingComponent() const;
 	UPlayerSoundComponent *GetPlayerSoundComponent() const;
 	
 	UAudioComponent *GetAudioComponent() const;
-	ACrowdActor *GetCrowdActor() const;
+	
+	FVector GetLastCheckpointLocation() const;
+	bool GetIsDead() const;
+	
+	void SetLastCheckpointLocation(FVector NewLastCheckpointLocation);
 };

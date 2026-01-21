@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -65,9 +63,18 @@ protected:
 	void MoveTowardsDestination(float DeltaTime);
 	void UpdateNiagaraBlending(float DeltaTime);
 	
+	void OnConsumeFXFinished();
+	
 public:
 	UPROPERTY()
 	APingMarker* CurrentPingMarkerToDestroy = nullptr;
+	
+	DECLARE_DELEGATE(FOnSwarmConsumeFinished);
+	FOnSwarmConsumeFinished OnConsumeFinished;
+	void ConsumePlayer(APlayerCharacter* Player, FOnSwarmConsumeFinished OnFinished);
+	
+	void OnPlayerRespawn(AActor* NewPlayer);
+	
 	void MoveTo(const FVector& NewTargetLocation);
 	void ReturnToPlayer(APlayerCharacter* Player);
 	void SetFormType(EFormType NewFormType);

@@ -4,6 +4,7 @@
 #include "Components/ActorComponent.h"
 #include "DisintegratableComponent.generated.h"
 
+class ADarkSwarmGameMode;
 class ADesintegrationActor;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -12,6 +13,8 @@ class DARKSWARM_API UDisintegratableComponent : public UActorComponent {
 
 	FVector CurrentCrowdLocation;
 	bool bIsDisintegrating = false;
+	UPROPERTY()
+	ADarkSwarmGameMode* GM;
 
 public:
 	UDisintegratableComponent();
