@@ -79,6 +79,8 @@ public:
 	void ReturnToPlayer(APlayerCharacter* Player);
 	void SetFormType(EFormType NewFormType);
 
+	
+
 	UNiagaraComponent* GetNiagaraSystem();
 	AActor* GetTargetActor();
 	EFormType GetFormType() const;

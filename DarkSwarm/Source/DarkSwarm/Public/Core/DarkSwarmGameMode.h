@@ -33,6 +33,4 @@ public:
 	void HandleRespawn();
 	void OnPlayerDied(APlayerCharacter* DeadPlayer);
 	
-	
-	ACrowdActor* GetCrowdActor() const;
 };

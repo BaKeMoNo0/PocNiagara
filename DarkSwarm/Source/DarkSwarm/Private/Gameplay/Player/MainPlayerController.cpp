@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 
 #include "Gameplay/Player/MainPlayerController.h"
 
@@ -7,6 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
 #include "Core/DarkSwarmGameMode.h"
+#include "Core/DarkSwarmGameState.h"
 #include "Gameplay/Player/Component/PlayerMovementComponent.h"
 #include "Gameplay/Player/Component/PlayerPingComponent.h"
 #include "Gameplay/Player/Component/PlayerSoundComponent.h"
@@ -18,6 +17,7 @@ void AMainPlayerController::BeginPlay() {
 	Super::BeginPlay();
 
 	InitWidget();
+	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AMainPlayerController::TryInitSwarm);
 }
 
 void AMainPlayerController::SetupInputComponent() {
@@ -57,19 +57,19 @@ void AMainPlayerController::OnPossess(APawn* InPawn) {
 	
 	ControlledCharacter = Cast<APlayerCharacter>(InPawn);
 	if (!ControlledCharacter) UE_LOG(LogTemp, Error, TEXT("PlayerController possessed non PlayerCharacter pawn"));
-	
-	ADarkSwarmGameMode* GM = Cast<ADarkSwarmGameMode>(GetWorld()->GetAuthGameMode());
-	Swarm = GM->GetCrowdActor();
-	//UE_LOG(LogTemp, Error, TEXT("Swarm: %s"), *Swarm->GetName());
-	if (!Swarm) return;
+}
 
-	//FVector SpawnOffset(-200.f, -180.f, 180.f);
-	//Swarm->SetActorLocation(ControlledCharacter->GetActorLocation() + SpawnOffset);
+void AMainPlayerController::TryInitSwarm() {
+	if (Swarm) return;
 
-	Swarm->SetTargetActor(ControlledCharacter);
-	Swarm->SetPingComp(ControlledCharacter->GetPlayerPingComponent());
-	if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Swarm 3"));
-	
+	if (ADarkSwarmGameState* GS = GetWorld()->GetGameState<ADarkSwarmGameState>()) {
+		Swarm = GS->GetCrowdActor();
+		if (Swarm && ControlledCharacter) {
+			Swarm->SetTargetActor(ControlledCharacter);
+			Swarm->SetPingComp(ControlledCharacter->GetPlayerPingComponent());
+			//if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Swarm 3"));
+		}
+	}
 }
 
 

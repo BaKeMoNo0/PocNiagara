@@ -24,6 +24,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* InPawn) override;
+	
+	void TryInitSwarm();
 
 
 	UPROPERTY(EditAnywhere, Category = "UI")

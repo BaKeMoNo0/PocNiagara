@@ -3,7 +3,7 @@
 
 #include "Gameplay/Player/Component/PlayerPingComponent.h"
 
-#include "Core/DarkSwarmGameMode.h"
+#include "Core/DarkSwarmGameState.h"
 #include "Gameplay/World/Interactive/PingMarker.h"
 #include "Gameplay/Swarm/CrowdActor.h"
 
@@ -15,7 +15,7 @@ UPlayerPingComponent::UPlayerPingComponent(){
 
 void UPlayerPingComponent::BeginPlay() {
 	Super::BeginPlay();
-	GM = Cast<ADarkSwarmGameMode>(GetWorld()->GetAuthGameMode());
+	GS = GetWorld()->GetGameState<ADarkSwarmGameState>();
 }
 
 void UPlayerPingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
@@ -45,7 +45,7 @@ void UPlayerPingComponent::StartAiming() {
 
 	
 	EFormType FormType = EFormType::Cube;
-	if (GM && GM->GetCrowdActor()) FormType = GM->GetCrowdActor()->GetFormType();
+	if (GS && GS->GetCrowdActor()) FormType = GS->GetCrowdActor()->GetFormType();
 	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetOwner();
@@ -65,9 +65,9 @@ void UPlayerPingComponent::StopAiming() {
 	bIsAiming = false;
 	SetComponentTickEnabled(false);
 
-	if (GM && GM->GetCrowdActor()) {
-		GM->GetCrowdActor()->MoveTo(LastValidLocation);
-		GM->GetCrowdActor()->CurrentPingMarkerToDestroy = ActivePingMarker;
+	if (GS && GS->GetCrowdActor()) {
+		GS->GetCrowdActor()->MoveTo(LastValidLocation);
+		GS->GetCrowdActor()->CurrentPingMarkerToDestroy = ActivePingMarker;
 	}
 }
 
@@ -88,10 +88,10 @@ void UPlayerPingComponent::TraceFromCrosshair() {
 		FCollisionQueryParams Params;
 		Params.AddIgnoredActor(GetOwner());
 		
-		if (IsValid(ActivePingMarker) && GM && GM->GetCrowdActor()) {
+		if (IsValid(ActivePingMarker) && GS && GS->GetCrowdActor()) {
 			Params.AddIgnoredActor(ActivePingMarker);
-			Params.AddIgnoredActor(GM->GetCrowdActor());
-			Params.AddIgnoredActors(GM->GetCrowdActor()->Children);
+			Params.AddIgnoredActor(GS->GetCrowdActor());
+			Params.AddIgnoredActors(GS->GetCrowdActor()->Children);
 		}
 
 		if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params)) {

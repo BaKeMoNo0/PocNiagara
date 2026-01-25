@@ -1,5 +1,7 @@
 #include "Core/DarkSwarmGameMode.h"
 
+#include "Core/DarkSwarmGameState.h"
+
 
 ADarkSwarmGameMode::ADarkSwarmGameMode(){}
 
@@ -7,6 +9,7 @@ void ADarkSwarmGameMode::BeginPlay() {
 	Super::BeginPlay();
 	
 	CrowdActor = GetWorld()->SpawnActor<ACrowdActor>(CrowdActorClass);
+	if (ADarkSwarmGameState* GS = GetGameState<ADarkSwarmGameState>()) GS->SetCrowdActor(CrowdActor);
 }
 
 
@@ -40,5 +43,3 @@ void ADarkSwarmGameMode::OnPlayerDied(APlayerCharacter* DeadPlayer) {
 		);
 	}
 }
-
-ACrowdActor* ADarkSwarmGameMode::GetCrowdActor() const { return CrowdActor; }

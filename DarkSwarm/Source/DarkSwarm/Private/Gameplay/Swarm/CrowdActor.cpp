@@ -6,6 +6,7 @@
 
 ACrowdActor::ACrowdActor() {
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 
 	SphereMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SphereMesh"));
 	RootComponent = SphereMesh;
@@ -23,6 +24,7 @@ ACrowdActor::ACrowdActor() {
 	
 	NiagaraSystem = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraSystem"));
 	NiagaraSystem->SetupAttachment(SphereMesh);
+	NiagaraSystem->SetAutoActivate(false);
 	
 	Offset = FVector(-200.f, -180.f, 180.f);
 	TargetLocation = FVector(0,0,0);
@@ -145,6 +147,11 @@ void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
 }
 
 
+
+
+
+
+
 void ACrowdActor::SetFormType(EFormType NewFormType){
 	if (FormType == NewFormType) return;
 	FormType = NewFormType;
@@ -193,5 +200,8 @@ void ACrowdActor::SetTotalSpawnCount(int NewSpawnCount) { TotalSpawnCount = NewS
 void ACrowdActor::SetTargetActor(AActor* NewTarget) {
 	TargetActor = NewTarget;
 	
-	if (TargetActor) SetActorLocation(TargetActor->GetActorLocation() + Offset);
+	if (TargetActor) {
+		SetActorLocation(TargetActor->GetActorLocation() + Offset);
+		if (!NiagaraSystem->IsActive()) NiagaraSystem->Activate(true);
+	}
 }
