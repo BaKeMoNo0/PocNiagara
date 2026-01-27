@@ -1,6 +1,7 @@
 #include "Core/DarkSwarmGameMode.h"
-
 #include "Core/DarkSwarmGameState.h"
+#include "Gameplay/Player/PlayerCharacter.h"
+#include "Gameplay/Swarm/CrowdActor.h"
 
 
 ADarkSwarmGameMode::ADarkSwarmGameMode(){}
@@ -8,32 +9,48 @@ ADarkSwarmGameMode::ADarkSwarmGameMode(){}
 void ADarkSwarmGameMode::BeginPlay() {
 	Super::BeginPlay();
 	
+	if (!ensure(CrowdActorClass)) return;
+	
+	// Spawn the global Swarm actor used throughout the game session
 	CrowdActor = GetWorld()->SpawnActor<ACrowdActor>(CrowdActorClass);
+	ensure(CrowdActor);
 	if (ADarkSwarmGameState* GS = GetGameState<ADarkSwarmGameState>()) GS->SetCrowdActor(CrowdActor);
 }
 
 
 void ADarkSwarmGameMode::HandleRespawn() {
-	if (!PendingDeadPlayer) return;
+	if (!PendingDeadPlayer){
+		bIsRespawning = false;
+		return;
+	}
 
 	AController* Controller = PendingDeadPlayer->GetController();
 	FVector RespawnLocation = PendingDeadPlayer->GetLastCheckpointLocation() + FVector(0,0,90);
 
-	PendingDeadPlayer->Destroy();
-
+	// Spawn the new player first
 	APlayerCharacter* NewPlayer = GetWorld()->SpawnActor<APlayerCharacter>(DefaultPawnClass, RespawnLocation,FRotator::ZeroRotator);
-
-	if (Controller && NewPlayer) Controller->Possess(NewPlayer);
+	if (!NewPlayer) { // Critical failure: keep the old pawn alive
+		bIsRespawning = false;
+		return;
+	}
 	
-	if (ACrowdActor* Swarm = CrowdActor) Swarm->OnPlayerRespawn(NewPlayer);
+	// Possess the new pawn
+	if (Controller) Controller->Possess(NewPlayer);
 	
+	// Notify swarm AFTER new player exists
+	if (CrowdActor) CrowdActor->OnPlayerRespawn(NewPlayer);
+	
+	// Now it's safe to destroy the old pawn
+	PendingDeadPlayer->Destroy();
 	PendingDeadPlayer = nullptr;
+	bIsRespawning = false;
 }
 
 
 void ADarkSwarmGameMode::OnPlayerDied(APlayerCharacter* DeadPlayer) {
-	if (!DeadPlayer) return;
+	if (!DeadPlayer || bIsRespawning) return;
 	
+	bIsRespawning = true;
 	PendingDeadPlayer = DeadPlayer;
 
 	if (CrowdActor) {
