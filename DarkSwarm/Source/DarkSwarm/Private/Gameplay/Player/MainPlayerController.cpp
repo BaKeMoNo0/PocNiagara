@@ -4,7 +4,6 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
-#include "Core/DarkSwarmGameMode.h"
 #include "Core/DarkSwarmGameState.h"
 #include "Gameplay/Player/Component/PlayerMovementComponent.h"
 #include "Gameplay/Player/Component/PlayerPingComponent.h"
@@ -18,7 +17,7 @@ void AMainPlayerController::BeginPlay() {
 
 	InitWidget();
 	if (ADarkSwarmGameState* GS = GetWorld()->GetGameState<ADarkSwarmGameState>()) {
-		GS->OnCrowdActorReady.AddUObject(this,&AMainPlayerController::HandleCrowdActorReady);
+		GS->OnCrowdActorReadyEvent().AddUObject(this,&AMainPlayerController::HandleCrowdActorReady);
 
 		if (ACrowdActor* Existing = GS->GetCrowdActor()) HandleCrowdActorReady(Existing);
 	}

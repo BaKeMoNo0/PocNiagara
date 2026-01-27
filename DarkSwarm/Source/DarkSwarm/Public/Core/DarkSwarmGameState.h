@@ -3,13 +3,19 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
-#include "Gameplay/Swarm/CrowdActor.h"
 #include "DarkSwarmGameState.generated.h"
+
+class ACrowdActor;
 
 
 UCLASS()
 class DARKSWARM_API ADarkSwarmGameState : public AGameStateBase {
 	GENERATED_BODY()
+	
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnCrowdActorReady, ACrowdActor*);
+	FOnCrowdActorReady OnCrowdActorReady;
+	
+	void NotifyCrowdActorReady();
 	
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_CrowdActor)
@@ -21,11 +27,11 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 public:
-	
-	DECLARE_MULTICAST_DELEGATE_OneParam(FOnCrowdActorReady, ACrowdActor*);
-	FOnCrowdActorReady OnCrowdActorReady;
+	FOnCrowdActorReady& OnCrowdActorReadyEvent() { return OnCrowdActorReady; }
 	
 	ACrowdActor* GetCrowdActor() const;
+	bool HasCrowdActor() const;
+
 	void SetCrowdActor(ACrowdActor* NewCrowdActor);
 	
 };
