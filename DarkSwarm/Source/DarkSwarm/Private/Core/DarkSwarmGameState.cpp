@@ -9,11 +9,16 @@ void ADarkSwarmGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 }
 
 void ADarkSwarmGameState::OnRep_CrowdActor() {
-	UE_LOG(LogTemp, Warning, TEXT("CrowdActor replicated"));
+	if (!CrowdActor) return;
+	UE_LOG(LogTemp, Log, TEXT("CrowdActor ready"));
+	OnCrowdActorReady.Broadcast(CrowdActor);
 }
-
 
 
 ACrowdActor* ADarkSwarmGameState::GetCrowdActor() const { return CrowdActor; }
 
-void ADarkSwarmGameState::SetCrowdActor(ACrowdActor* NewCrowdActor) { CrowdActor = NewCrowdActor; }
+void ADarkSwarmGameState::SetCrowdActor(ACrowdActor* NewCrowdActor) {
+	if (CrowdActor == NewCrowdActor) return;
+	CrowdActor = NewCrowdActor;
+	OnRep_CrowdActor();
+}

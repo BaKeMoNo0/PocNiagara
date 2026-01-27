@@ -12,8 +12,8 @@ class DARKSWARM_API ADarkSwarmGameState : public AGameStateBase {
 	GENERATED_BODY()
 	
 protected:
-	UPROPERTY(Replicated)
-	ACrowdActor* CrowdActor;
+	UPROPERTY(ReplicatedUsing = OnRep_CrowdActor)
+	ACrowdActor* CrowdActor = nullptr;
 	
 	UFUNCTION()
 	void OnRep_CrowdActor();
@@ -21,6 +21,10 @@ protected:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	
 public:
+	
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnCrowdActorReady, ACrowdActor*);
+	FOnCrowdActorReady OnCrowdActorReady;
+	
 	ACrowdActor* GetCrowdActor() const;
 	void SetCrowdActor(ACrowdActor* NewCrowdActor);
 	

@@ -25,8 +25,9 @@ protected:
 	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	
-	void TryInitSwarm();
-
+	UFUNCTION()
+	void HandleCrowdActorReady(ACrowdActor* InCrowdActor);
+	
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;

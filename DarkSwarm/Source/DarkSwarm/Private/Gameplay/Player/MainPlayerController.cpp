@@ -17,7 +17,11 @@ void AMainPlayerController::BeginPlay() {
 	Super::BeginPlay();
 
 	InitWidget();
-	GetWorld()->GetTimerManager().SetTimerForNextTick(this, &AMainPlayerController::TryInitSwarm);
+	if (ADarkSwarmGameState* GS = GetWorld()->GetGameState<ADarkSwarmGameState>()) {
+		GS->OnCrowdActorReady.AddUObject(this,&AMainPlayerController::HandleCrowdActorReady);
+
+		if (ACrowdActor* Existing = GS->GetCrowdActor()) HandleCrowdActorReady(Existing);
+	}
 }
 
 void AMainPlayerController::SetupInputComponent() {
@@ -52,6 +56,7 @@ void AMainPlayerController::SetupInputComponent() {
 	}
 }
 
+
 void AMainPlayerController::OnPossess(APawn* InPawn) {
 	Super::OnPossess(InPawn);
 	
@@ -59,16 +64,13 @@ void AMainPlayerController::OnPossess(APawn* InPawn) {
 	if (!ControlledCharacter) UE_LOG(LogTemp, Error, TEXT("PlayerController possessed non PlayerCharacter pawn"));
 }
 
-void AMainPlayerController::TryInitSwarm() {
-	if (Swarm) return;
 
-	if (ADarkSwarmGameState* GS = GetWorld()->GetGameState<ADarkSwarmGameState>()) {
-		Swarm = GS->GetCrowdActor();
-		if (Swarm && ControlledCharacter) {
-			Swarm->SetTargetActor(ControlledCharacter);
-			Swarm->SetPingComp(ControlledCharacter->GetPlayerPingComponent());
-			//if(GEngine) GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Swarm 3"));
-		}
+void AMainPlayerController::HandleCrowdActorReady(ACrowdActor* InCrowdActor) {
+	Swarm = InCrowdActor;
+
+	if (ControlledCharacter) {
+		Swarm->SetTargetActor(ControlledCharacter);
+		Swarm->SetPingComp(ControlledCharacter->GetPlayerPingComponent());
 	}
 }
 
