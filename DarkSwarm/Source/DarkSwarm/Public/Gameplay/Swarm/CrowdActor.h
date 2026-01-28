@@ -2,32 +2,21 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "./FormType.h"
+#include "Types/SwarmForm.h"
+#include "Types/CrowdState.h"
+#include "Types/CrowdVisualParams.h"
 #include "CrowdActor.generated.h"
 
-class UPlayerPingComponent;
-class APlayerCharacter;
-class APingMarker;
+class UCrowdVisualComponent;
 class UNiagaraComponent;
+class APlayerCharacter;
+class UPlayerPingComponent;
+class APingMarker;
+
 
 UCLASS()
 class DARKSWARM_API ACrowdActor : public AActor {
 	GENERATED_BODY()
-
-	FVector Offset;
-	FVector TargetLocation;
-	FVector Destination;
-	bool bShouldMove = false;
-	bool bIsSlowingDown = false;
-	bool bHasReachedDestination = false;
-
-	float CurrentBlendAlpha = 0.0f;
-	float BlendAlphaTarget = 0.9f;
-	int RestSpawnCount = 50;
-	int TotalSpawnCount = 125;
-	float Spacing = 15.0f;
-	float RestMeshUniformScale = 0.07f;
-	float ActionMeshUniformScale = 0.15f;
 	
 public:
 	ACrowdActor();
@@ -35,15 +24,20 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+	
+	void TickIdle(float);
+	void TickFollowingPlayer(float);
+	void TickMovingToTarget(float);
+	void TickSlowingDown(float);
+	
+	void TickConsumingPlayer(float); //todo
+	void TickReforming(float); //todo
 
-	UPROPERTY(VisibleAnywhere, Category = "Follow")
-	AActor* TargetActor;
-
-	UPROPERTY()
-	UPlayerPingComponent* PingComp;
-
-	UPROPERTY(VisibleAnywhere, Category = "Follow")
-	float FollowSpeed = 2.0f;
+	void OnEnterState(ECrowdState NewState);
+	void OnExitState(ECrowdState OldState);
+	void OnConsumeFXFinished(); //todo
+	
+	void MoveTowardsDestination(float DeltaTime);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* SphereMesh;
@@ -53,42 +47,70 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UNiagaraComponent* NiagaraSystem;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	EFormType FormType = EFormType::Cube;
-
 	
-
-	void UpdateDestination();
-	void MoveTowardsDestination(float DeltaTime);
-	void UpdateNiagaraBlending(float DeltaTime);
 	
-	void OnConsumeFXFinished();
+	UPROPERTY(VisibleAnywhere)
+	UCrowdVisualComponent* VisualComp;
+	
+	UPROPERTY()
+	UPlayerPingComponent* PingComp;
+	
+	
+	UPROPERTY(EditDefaultsOnly, Category="Swarm|Visual")
+	FCrowdVisualParams RestVisualParams;
+
+	UPROPERTY(EditDefaultsOnly, Category="Swarm|Visual")
+	FCrowdVisualParams ActionVisualParams;
+
+	UPROPERTY(EditDefaultsOnly, Category="Swarm|Visual")
+	float ParticleSpacing = 15.f;
+	
+	
+	UPROPERTY(EditDefaultsOnly, Category="Swarm|Follow")
+	FVector FollowOffset = FVector(-200.f, -180.f, 180.f);
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Swarm|Follow")
+	float FollowSpeed = 2.0f;
+	
+	
+	float CurrentBlendAlpha = 0.0f;
+	ESwarmForm SwarmForm;
+	ECrowdState CrowdState;
+	
+	
+	DECLARE_MULTICAST_DELEGATE(FOnSwarmConsumeFinished);
+	FOnSwarmConsumeFinished OnConsumeFinished;
+	
+	
+	UPROPERTY()
+	AActor* TargetActor = nullptr;
+	FVector TargetLocation;
+	FVector Destination;
 	
 public:
 	UPROPERTY()
 	APingMarker* CurrentPingMarkerToDestroy = nullptr;
 	
-	DECLARE_DELEGATE(FOnSwarmConsumeFinished);
-	FOnSwarmConsumeFinished OnConsumeFinished;
-	void ConsumePlayer(APlayerCharacter* Player, FOnSwarmConsumeFinished OnFinished);
+	FOnSwarmConsumeFinished& OnConsumeFinishedEvent() { return OnConsumeFinished; }
+	void ConsumePlayer(APlayerCharacter* Player);
 	
 	void OnPlayerRespawn(AActor* NewPlayer);
 	
 	void MoveTo(const FVector& NewTargetLocation);
 	void ReturnToPlayer(APlayerCharacter* Player);
-	void SetFormType(EFormType NewFormType);
-
 	
 
-	UNiagaraComponent* GetNiagaraSystem();
-	AActor* GetTargetActor();
-	EFormType GetFormType() const;
-	int GetRestSpawnCount() const;
-	int GetTotalSpawnCount() const;
-	UStaticMeshComponent* GetCollisionMesh() const;
+	AActor* GetTargetActor() const { return TargetActor; }
+	ESwarmForm GetSwarmForm() const { return SwarmForm; }
+	UStaticMeshComponent* GetSphereMesh() const { return SphereMesh; }
+	UNiagaraComponent* GetNiagaraSystem() const{ return NiagaraSystem; }
+	
+	const FCrowdVisualParams& GetRestVisualParams() const { return RestVisualParams; }
+	const FCrowdVisualParams& GetActionVisualParams() const { return ActionVisualParams; }
 
-	void SetPingComp(UPlayerPingComponent* PingCompRef);
+	void SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
 	void SetTargetActor(AActor* NewTarget);
-	void SetTotalSpawnCount(int NewSpawnCount);
+	void SetCrowdState(ECrowdState NewState);
+	void SetActionParticleCount(int NewCount);
+	void SetSwarmForm(ESwarmForm NewSwarmForm);
 };

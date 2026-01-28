@@ -2,6 +2,7 @@
 #include "NiagaraComponent.h"
 #include "Gameplay/Player/PlayerCharacter.h"
 #include "Gameplay/Player/Component/PlayerPingComponent.h"
+#include "Gameplay/Swarm/Components/CrowdVisualComponent.h"
 
 
 ACrowdActor::ACrowdActor() {
@@ -10,106 +11,104 @@ ACrowdActor::ACrowdActor() {
 
 	SphereMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SphereMesh"));
 	RootComponent = SphereMesh;
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SphereMeshAsset(TEXT("/Engine/BasicShapes/Sphere"));
-	if (SphereMeshAsset.Succeeded()) SphereMesh->SetStaticMesh(SphereMeshAsset.Object);
-	SphereMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-
-	CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CubeMesh"));
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> CubeMeshAsset(TEXT("/Engine/BasicShapes/Cube"));
-	if (CubeMeshAsset.Succeeded()) CollisionMesh->SetStaticMesh(CubeMeshAsset.Object);
+	
+	CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CollisionMesh"));
 	CollisionMesh->SetupAttachment(SphereMesh);
+	
 	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+	CollisionMesh->SetCollisionProfileName(TEXT("NoCollision"));
+	CollisionMesh->SetGenerateOverlapEvents(false);
+	CollisionMesh->SetMobility(EComponentMobility::Movable);
 	
 	NiagaraSystem = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraSystem"));
 	NiagaraSystem->SetupAttachment(SphereMesh);
 	NiagaraSystem->SetAutoActivate(false);
 	
-	Offset = FVector(-200.f, -180.f, 180.f);
+	VisualComp = CreateDefaultSubobject<UCrowdVisualComponent>(TEXT("VisualComp"));
 	TargetLocation = FVector(0,0,0);
-	
 }
 
 
 void ACrowdActor::BeginPlay() {
 	Super::BeginPlay();
-
-	NiagaraSystem->SetIntParameter(FName("User.SpawnCount"), TotalSpawnCount);
-	NiagaraSystem->SetFloatParameter(FName("User.Spacing"), Spacing);
-	NiagaraSystem->SetFloatParameter(FName("User.MeshUniformScale"), RestMeshUniformScale);
-	NiagaraSystem->SetIntParameter("User.ActiveParticleCount", RestSpawnCount);
+	
+	VisualComp->Init(NiagaraSystem, CollisionMesh, SphereMesh);
+	VisualComp->Initialize(ActionVisualParams, ParticleSpacing);
+	VisualComp->EnsureActiveNiagara();
+	
+	SetSwarmForm(ESwarmForm::Cube);
+	SetCrowdState(ECrowdState::FollowingPlayer);
 }
 
 
 void ACrowdActor::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
-	UpdateDestination();
-	MoveTowardsDestination(DeltaTime);
-	UpdateNiagaraBlending(DeltaTime);
-}
-
-
-void ACrowdActor::UpdateDestination() {
-	if (TargetActor) {
-		Destination = TargetActor->GetActorLocation() + Offset;
-	} else if (bShouldMove) {
-		Destination = TargetLocation;
+	switch (CrowdState) {
+		case ECrowdState::FollowingPlayer: TickFollowingPlayer(DeltaTime); break;
+		case ECrowdState::MovingToTarget:  TickMovingToTarget(DeltaTime);  break;
+		case ECrowdState::SlowingDown:     TickSlowingDown(DeltaTime);     break;
+		case ECrowdState::StaticForm:      TickIdle(DeltaTime);            break;
+		default: break;
 	}
 }
 
-void ACrowdActor::MoveTowardsDestination(float DeltaTime) {
-	if (!bShouldMove && !TargetActor) return;
 
+void ACrowdActor::TickIdle(float) { /* empty */ }
+
+
+void ACrowdActor::TickFollowingPlayer(float DeltaTime) {
+	if (!TargetActor) return;
+
+	Destination = TargetActor->GetActorLocation() + FollowOffset;
+	MoveTowardsDestination(DeltaTime);
+}
+
+
+void ACrowdActor::TickMovingToTarget(float DeltaTime) {
+	Destination = TargetLocation;
+	MoveTowardsDestination(DeltaTime);
+
+	const float Distance = FVector::Dist(GetActorLocation(), Destination);
+	if (Distance <= 5.0f) {
+		if (PingComp && PingComp->IsThisMyActiveMarker(CurrentPingMarkerToDestroy)) PingComp->DestroyPingMarker();
+		SetCrowdState(ECrowdState::SlowingDown);
+	}
+	VisualComp->ApplyVisualState(ActionVisualParams);
+	VisualComp->UpdateBlend(CurrentBlendAlpha);
+}
+
+
+void ACrowdActor::TickSlowingDown(float DeltaTime) {
+	VisualComp->UpdateSlowingDown(DeltaTime, CurrentBlendAlpha, ActionVisualParams.BlendAlphaTarget);
+	
+	if (CurrentBlendAlpha >= ActionVisualParams.BlendAlphaTarget) SetCrowdState(ECrowdState::StaticForm);
+}
+
+
+void ACrowdActor::TickConsumingPlayer(float){ /* todo */ }
+void ACrowdActor::TickReforming(float) { /* todo */ }
+
+
+void ACrowdActor::MoveTowardsDestination(float DeltaTime) {
 	FVector NewLocation = FMath::VInterpTo(GetActorLocation(), Destination, DeltaTime, FollowSpeed);
 	SetActorLocation(NewLocation);
 }
 
 
-void ACrowdActor::UpdateNiagaraBlending(float DeltaTime) {
-	if (!TargetActor && bShouldMove) {
-		float Distance = FVector::Dist(GetActorLocation(), Destination);
+void ACrowdActor::ConsumePlayer(APlayerCharacter* Player) {
+	if (!Player) return;
 
-		if (Distance <= 5.0f && !bHasReachedDestination) {
-			if (PingComp && PingComp->IsThisMyActiveMarker(CurrentPingMarkerToDestroy)) PingComp->DestroyPingMarker();
-			
-			bHasReachedDestination = true;
-			if (!bIsSlowingDown) bIsSlowingDown = true;
-		}
-
-		NiagaraSystem->SetIntParameter("User.ActiveParticleCount", TotalSpawnCount);
-		NiagaraSystem->SetFloatParameter("User.MeshUniformScale", ActionMeshUniformScale);
-
-		if (bIsSlowingDown) {
-			BlendAlphaTarget = 0.9;
-			CurrentBlendAlpha = FMath::Clamp(FMath::FInterpTo(CurrentBlendAlpha, BlendAlphaTarget, DeltaTime, 0.25f),0.0f, BlendAlphaTarget);
-			NiagaraSystem->SetFloatParameter(FName("User.CurrentBlendAlpha"), CurrentBlendAlpha);
-			NiagaraSystem->SetVectorParameter(FName("User.SpherePos"), SphereMesh->GetComponentLocation());
-			
-			if (CurrentBlendAlpha > 0.2f) {
-				CollisionMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-				CollisionMesh->SetCollisionResponseToAllChannels(ECR_Block);
-				CollisionMesh->SetCollisionObjectType(ECC_WorldStatic);
-			}
-		}
-	}
-}
-
-
-void ACrowdActor::ConsumePlayer(APlayerCharacter* Player, FOnSwarmConsumeFinished OnFinished) {
-	OnConsumeFinished = OnFinished;
+	CrowdState = ECrowdState::ConsumingPlayer;
 	
-	//PlayConsumeFX(Player->GetActorLocation());
+	//PlayConsumeFX();
+	// end → OnConsumeFXFinished()
 }
-
 
 
 void ACrowdActor::OnConsumeFXFinished() {
-	if (OnConsumeFinished.IsBound()) OnConsumeFinished.Execute();
-	OnConsumeFinished.Unbind();
+	OnConsumeFinished.Broadcast();
 }
-
 
 
 void ACrowdActor::OnPlayerRespawn(AActor* NewPlayer) {
@@ -118,90 +117,77 @@ void ACrowdActor::OnPlayerRespawn(AActor* NewPlayer) {
 
 	//PlayReformFX();
 
-	AttachToActor(
-		NewPlayer,
-		FAttachmentTransformRules::SnapToTargetNotIncludingScale
-	);
+	AttachToActor(NewPlayer, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 }
-
 
 
 void ACrowdActor::MoveTo(const FVector& NewTargetLocation) {
 	TargetActor = nullptr;
 	TargetLocation = NewTargetLocation;
-	bShouldMove = true;
-	bHasReachedDestination = false;
+	CrowdState = ECrowdState::MovingToTarget;
 }
 
 
 void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
 	TargetActor = Player;
-	BlendAlphaTarget = 0.0f;
-	CurrentBlendAlpha = 0.0f;
-	bShouldMove = false;
-	bIsSlowingDown = false;
-	NiagaraSystem->SetFloatParameter(FName("User.CurrentBlendAlpha"), CurrentBlendAlpha);
-	NiagaraSystem->SetIntParameter("User.ActiveParticleCount", RestSpawnCount);
-	NiagaraSystem->SetFloatParameter(FName("User.MeshUniformScale"), RestMeshUniformScale);
-	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	CurrentBlendAlpha = 0.f;
+	SetCrowdState(ECrowdState::FollowingPlayer);
 }
 
 
+void ACrowdActor::OnEnterState(ECrowdState NewState) {
+	switch (NewState) {
+		case ECrowdState::FollowingPlayer:
+			CurrentBlendAlpha = 0.f;
+			VisualComp->ApplyVisualState(RestVisualParams);
+			VisualComp->UpdateBlend(CurrentBlendAlpha);
+			break;
 
+		case ECrowdState::MovingToTarget:
+		case ECrowdState::SlowingDown:    VisualComp->ApplyVisualState(ActionVisualParams); break;
+		case ECrowdState::StaticForm: break;
 
-
-
-
-void ACrowdActor::SetFormType(EFormType NewFormType){
-	if (FormType == NewFormType) return;
-	FormType = NewFormType;
-	
-	NiagaraSystem->SetIntParameter(FName("User.FormType"), static_cast<int32>(NewFormType));
-
-	const float UnitMeshSize = 10.0f;
-	FVector NewScale;
-
-	switch (FormType) {
-		case EFormType::Cube: {
-				const int CountPerAxisCube = FMath::CeilToInt(FMath::Pow(TotalSpawnCount, 1.0f / 3.0f));
-				const float CubeSize = CountPerAxisCube * Spacing * ActionMeshUniformScale;
-				NewScale = FVector(CubeSize / UnitMeshSize);
-				CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube")));
-				break;
-		}
-		case EFormType::Plane: {
-				const int CountPerAxisPlane = FMath::CeilToInt(FMath::Sqrt(static_cast<float>(TotalSpawnCount)));
-				const float PlaneSize = CountPerAxisPlane * Spacing * ActionMeshUniformScale;
-				NewScale = FVector(PlaneSize / UnitMeshSize, PlaneSize / UnitMeshSize, 1.0f); // très fin
-				CollisionMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane")));
-				break;
-		}
-		default:
-			return;
+		case ECrowdState::ConsumingPlayer: break;
+		default: break;
 	}
+}
 
-	CollisionMesh->SetWorldScale3D(NewScale);
+void ACrowdActor::OnExitState(ECrowdState OldState) {
+	switch (OldState) {
+		case ECrowdState::SlowingDown: /*VisualComp->DisableCollision(); */  break;
+		case ECrowdState::ConsumingPlayer: /*VisualComp->StopConsumeFX(); */ break;
+		default: break;
+	}
 }
 
 
+void ACrowdActor::SetSwarmForm(ESwarmForm NewSwarmForm){
+	if (SwarmForm == NewSwarmForm) return;
+	SwarmForm = NewSwarmForm;
+	
+	VisualComp->ApplyFormVisual(SwarmForm, ActionVisualParams.ParticleCount, ParticleSpacing, ActionVisualParams.MeshScale);
+}
 
-AActor* ACrowdActor::GetTargetActor() { return TargetActor; }
-EFormType ACrowdActor::GetFormType() const { return FormType; }
-
-int ACrowdActor::GetRestSpawnCount() const { return RestSpawnCount; }
-int ACrowdActor::GetTotalSpawnCount() const { return TotalSpawnCount; }
-
-UStaticMeshComponent* ACrowdActor::GetCollisionMesh() const { return SphereMesh; }
-UNiagaraComponent* ACrowdActor::GetNiagaraSystem(){ return NiagaraSystem; }
-
-void ACrowdActor::SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
-void ACrowdActor::SetTotalSpawnCount(int NewSpawnCount) { TotalSpawnCount = NewSpawnCount;  }
 
 void ACrowdActor::SetTargetActor(AActor* NewTarget) {
 	TargetActor = NewTarget;
 	
 	if (TargetActor) {
-		SetActorLocation(TargetActor->GetActorLocation() + Offset);
-		if (!NiagaraSystem->IsActive()) NiagaraSystem->Activate(true);
+		SetActorLocation(TargetActor->GetActorLocation() + FollowOffset);
+		VisualComp->EnsureActiveNiagara();
 	}
+}
+
+void ACrowdActor::SetCrowdState(ECrowdState NewState) {
+	if (CrowdState == NewState) return;
+
+	OnExitState(CrowdState);
+	CrowdState = NewState;
+	OnEnterState(NewState);
+}
+
+
+void ACrowdActor::SetActionParticleCount(int Delta) {
+	ActionVisualParams.ParticleCount += Delta;
+	VisualComp->ApplyVisualState(ActionVisualParams);
 }

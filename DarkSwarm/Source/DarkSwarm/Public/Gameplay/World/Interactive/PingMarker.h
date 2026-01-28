@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Gameplay/Swarm/FormType.h"
+#include "Gameplay/Swarm/Types/SwarmForm.h"
 #include "PingMarker.generated.h"
 
 class UWidgetComponent;
@@ -28,5 +28,5 @@ protected:
 	UStaticMesh* CustomMesh;
 
 public:
-	void SetFormVisual(EFormType Type);
+	void SetFormVisual(ESwarmForm Type);
 };

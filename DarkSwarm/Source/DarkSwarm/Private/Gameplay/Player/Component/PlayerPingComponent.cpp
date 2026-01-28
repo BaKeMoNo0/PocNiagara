@@ -25,14 +25,6 @@ void UPlayerPingComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	}
 }
 
-void UPlayerPingComponent::CallPing() {
-	if (bIsAiming){
-		StartAiming();
-	} else{
-		StopAiming();
-	}
-}
-
 
 void UPlayerPingComponent::StartAiming() {
 	bIsAiming = true;
@@ -44,8 +36,8 @@ void UPlayerPingComponent::StartAiming() {
 	}
 
 	
-	EFormType FormType = EFormType::Cube;
-	if (GS && GS->GetCrowdActor()) FormType = GS->GetCrowdActor()->GetFormType();
+	ESwarmForm FormType = ESwarmForm::Cube;
+	if (GS && GS->GetCrowdActor()) FormType = GS->GetCrowdActor()->GetSwarmForm();
 	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetOwner();

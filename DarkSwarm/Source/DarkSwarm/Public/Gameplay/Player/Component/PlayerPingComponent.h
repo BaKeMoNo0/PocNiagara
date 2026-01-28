@@ -45,7 +45,6 @@ protected:
 public:
 	void StartAiming();
 	void StopAiming();
-	void CallPing();
 	void AdjustPingDistance(float AxisValue);
 	void DestroyPingMarker();
 	bool IsThisMyActiveMarker(APingMarker* Marker) const;

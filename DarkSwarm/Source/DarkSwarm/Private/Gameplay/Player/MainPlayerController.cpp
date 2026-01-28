@@ -149,11 +149,11 @@ void AMainPlayerController::AdjustPingDistance(const FInputActionValue& Value) {
 }
 
 void AMainPlayerController::SetFormCube() {
-	Swarm->SetFormType(EFormType::Cube);
+	Swarm->SetSwarmForm(ESwarmForm::Cube);
 }
 
 void AMainPlayerController::SetFormPlane() {
-	Swarm->SetFormType(EFormType::Plane);
+	Swarm->SetSwarmForm(ESwarmForm::Plane);
 }
 
 

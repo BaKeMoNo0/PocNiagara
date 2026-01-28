@@ -12,15 +12,15 @@ APingMarker::APingMarker() {
 }
 
 
-void APingMarker::SetFormVisual(EFormType Type) {
+void APingMarker::SetFormVisual(ESwarmForm Type) {
 	if (PingMaterial) VisualMesh->SetMaterial(0, PingMaterial);
 	
 	switch (Type) {
-	case EFormType::Cube:
+	case ESwarmForm::Cube:
 		VisualMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube")));
 		VisualMesh->SetWorldScale3D(FVector(1.0f));
 		break;
-	case EFormType::Plane:
+	case ESwarmForm::Plane:
 		VisualMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane")));
 		VisualMesh->SetWorldScale3D(FVector(1.5f));
 		break;

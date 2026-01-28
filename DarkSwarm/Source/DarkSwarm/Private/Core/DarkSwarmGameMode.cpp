@@ -14,6 +14,8 @@ void ADarkSwarmGameMode::BeginPlay() {
 	// Spawn the global Swarm actor used throughout the game session
 	CrowdActor = GetWorld()->SpawnActor<ACrowdActor>(CrowdActorClass);
 	ensure(CrowdActor);
+	CrowdActor->OnConsumeFinishedEvent().RemoveAll(this);
+	CrowdActor->OnConsumeFinishedEvent().AddUObject(this, &ADarkSwarmGameMode::HandleRespawn);
 	if (ADarkSwarmGameState* GS = GetGameState<ADarkSwarmGameState>()) GS->SetCrowdActor(CrowdActor);
 }
 
@@ -52,11 +54,6 @@ void ADarkSwarmGameMode::OnPlayerDied(APlayerCharacter* DeadPlayer) {
 	
 	bIsRespawning = true;
 	PendingDeadPlayer = DeadPlayer;
-
-	if (CrowdActor) {
-		CrowdActor->ConsumePlayer(
-			DeadPlayer,
-			CrowdActor->OnConsumeFinished
-		);
-	}
+	
+	if (CrowdActor) { CrowdActor->ConsumePlayer(DeadPlayer); }
 }

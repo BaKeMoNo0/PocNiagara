@@ -28,8 +28,8 @@ void UDisintegratableComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	
 	if (bIsDisintegrating && Owner->GetNiagaraComp()) {
 
-		if (GS && GS->GetCrowdActor() && GS->GetCrowdActor()->GetCollisionMesh()) {
-				CurrentCrowdLocation = GS->GetCrowdActor()->GetCollisionMesh()->GetComponentLocation();
+		if (GS && GS->GetCrowdActor() && GS->GetCrowdActor()->GetSphereMesh()) {
+				CurrentCrowdLocation = GS->GetCrowdActor()->GetSphereMesh()->GetComponentLocation();
 				Owner->GetNiagaraComp()->SetVectorParameter(FName("User.AttractionTarget"), CurrentCrowdLocation);
 		}
 	}
@@ -44,8 +44,8 @@ void UDisintegratableComponent::TriggerDisintegration() {
 
 			Owner->GetNiagaraComp()->Activate(true);
 
-			if (GS && GS->GetCrowdActor() && GS->GetCrowdActor()->GetCollisionMesh()) {
-					CurrentCrowdLocation = GS->GetCrowdActor()->GetCollisionMesh()->GetComponentLocation();
+			if (GS && GS->GetCrowdActor() && GS->GetCrowdActor()->GetSphereMesh()) {
+					CurrentCrowdLocation = GS->GetCrowdActor()->GetSphereMesh()->GetComponentLocation();
 					//DrawDebugSphere(GetWorld(), CurrentCrowdLocation, 20.f, 12, FColor::Green, false, 2.0f);
 					Niagara->SetVectorParameter(FName("User.AttractionTarget"), CurrentCrowdLocation);
 			}
@@ -58,10 +58,9 @@ void UDisintegratableComponent::TriggerDisintegration() {
 				[this, Niagara]() {
 					bIsDisintegrating = false;
 					Niagara->Deactivate();
-					int SpawnCount = GS->GetCrowdActor()->GetTotalSpawnCount();
-					GS->GetCrowdActor()->SetTotalSpawnCount(SpawnCount + 1000);
-					GS->GetCrowdActor()->GetNiagaraSystem()->SetIntParameter(FName("User.SpawnCount"), SpawnCount);
-					GS->GetCrowdActor()->SetFormType(GS->GetCrowdActor()->GetFormType());
+					GS->GetCrowdActor()->SetActionParticleCount(100);
+					GS->GetCrowdActor()->GetNiagaraSystem()->SetIntParameter(FName("User.SpawnCount"), GS->GetCrowdActor()->GetActionVisualParams().ParticleCount);
+					GS->GetCrowdActor()->SetSwarmForm(GS->GetCrowdActor()->GetSwarmForm());
 					GS->GetCrowdActor()->GetNiagaraSystem()->ReinitializeSystem();
 				},
 				5.0f,
