@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Gameplay/Player/Component/PlayerPingComponent.h"
+#include "Gameplay/Player/Components/PlayerPingComponent.h"
 
 #include "Core/DarkSwarmGameState.h"
 #include "Gameplay/World/Interactive/PingMarker.h"
@@ -13,16 +13,31 @@ UPlayerPingComponent::UPlayerPingComponent(){
 	PrimaryComponentTick.bStartWithTickEnabled = false;
 }
 
+
 void UPlayerPingComponent::BeginPlay() {
 	Super::BeginPlay();
 	GS = GetWorld()->GetGameState<ADarkSwarmGameState>();
+	
+	if (GS && GS->GetCrowdActor()) {
+		ACrowdActor* Crowd = GS->GetCrowdActor();
+
+		Crowd->OnDestinationReachedEvent().RemoveAll(this);
+		Crowd->OnDestinationReachedEvent().AddUObject(this, &UPlayerPingComponent::OnCrowdReachedDestination);
+	}
 }
+
 
 void UPlayerPingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	if (bIsAiming) {
 		TraceFromCrosshair();
 	}
+}
+
+void UPlayerPingComponent::EndPlay(const EEndPlayReason::Type EndPlayReason) {
+	if (GS && GS->GetCrowdActor()) GS->GetCrowdActor()->OnDestinationReachedEvent().RemoveAll(this);
+	
+	Super::EndPlay(EndPlayReason);
 }
 
 
@@ -36,8 +51,8 @@ void UPlayerPingComponent::StartAiming() {
 	}
 
 	
-	ESwarmForm FormType = ESwarmForm::Cube;
-	if (GS && GS->GetCrowdActor()) FormType = GS->GetCrowdActor()->GetSwarmForm();
+	ESwarmForm SwarmForm = ESwarmForm::Cube;
+	if (GS && GS->GetCrowdActor()) SwarmForm = GS->GetCrowdActor()->GetSwarmForm();
 	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.Owner = GetOwner();
@@ -49,7 +64,7 @@ void UPlayerPingComponent::StartAiming() {
 		SpawnParams
 	);
 
-	if (ActivePingMarker) ActivePingMarker->SetFormVisual(FormType);
+	if (ActivePingMarker) ActivePingMarker->SetFormVisual(SwarmForm);
 }
 
 
@@ -57,10 +72,8 @@ void UPlayerPingComponent::StopAiming() {
 	bIsAiming = false;
 	SetComponentTickEnabled(false);
 
-	if (GS && GS->GetCrowdActor()) {
-		GS->GetCrowdActor()->MoveTo(LastValidLocation);
-		GS->GetCrowdActor()->CurrentPingMarkerToDestroy = ActivePingMarker;
-	}
+	if (GS && GS->GetCrowdActor()) GS->GetCrowdActor()->MoveTo(LastValidLocation);
+	
 }
 
 void UPlayerPingComponent::TraceFromCrosshair() {
@@ -110,6 +123,7 @@ void UPlayerPingComponent::DestroyPingMarker() {
 	}
 }
 
-bool UPlayerPingComponent::IsThisMyActiveMarker(APingMarker* Marker) const {
-	return Marker != nullptr && Marker == ActivePingMarker;
+void UPlayerPingComponent::OnCrowdReachedDestination() {
+	DestroyPingMarker();
 }
+

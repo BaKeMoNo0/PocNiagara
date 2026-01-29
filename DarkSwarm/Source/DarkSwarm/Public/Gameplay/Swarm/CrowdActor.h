@@ -10,7 +10,6 @@
 class UCrowdVisualComponent;
 class UNiagaraComponent;
 class APlayerCharacter;
-class UPlayerPingComponent;
 class APingMarker;
 
 
@@ -52,9 +51,6 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	UCrowdVisualComponent* VisualComp;
 	
-	UPROPERTY()
-	UPlayerPingComponent* PingComp;
-	
 	
 	UPROPERTY(EditDefaultsOnly, Category="Swarm|Visual")
 	FCrowdVisualParams RestVisualParams;
@@ -81,6 +77,8 @@ protected:
 	DECLARE_MULTICAST_DELEGATE(FOnSwarmConsumeFinished);
 	FOnSwarmConsumeFinished OnConsumeFinished;
 	
+	DECLARE_MULTICAST_DELEGATE(FOnDestinationReached);
+	FOnDestinationReached OnDestinationReached;
 	
 	UPROPERTY()
 	AActor* TargetActor = nullptr;
@@ -88,10 +86,10 @@ protected:
 	FVector Destination;
 	
 public:
-	UPROPERTY()
-	APingMarker* CurrentPingMarkerToDestroy = nullptr;
 	
 	FOnSwarmConsumeFinished& OnConsumeFinishedEvent() { return OnConsumeFinished; }
+	FOnDestinationReached& OnDestinationReachedEvent() { return OnDestinationReached; }
+	
 	void ConsumePlayer(APlayerCharacter* Player);
 	
 	void OnPlayerRespawn(AActor* NewPlayer);
@@ -108,7 +106,6 @@ public:
 	const FCrowdVisualParams& GetRestVisualParams() const { return RestVisualParams; }
 	const FCrowdVisualParams& GetActionVisualParams() const { return ActionVisualParams; }
 
-	void SetPingComp(UPlayerPingComponent* PingCompRef) { PingComp = PingCompRef; }
 	void SetTargetActor(AActor* NewTarget);
 	void SetCrowdState(ECrowdState NewState);
 	void SetActionParticleCount(int NewCount);

@@ -5,9 +5,9 @@
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
 #include "Core/DarkSwarmGameState.h"
-#include "Gameplay/Player/Component/PlayerMovementComponent.h"
-#include "Gameplay/Player/Component/PlayerPingComponent.h"
-#include "Gameplay/Player/Component/PlayerSoundComponent.h"
+#include "Gameplay/Player/Components/PlayerMovementComponent.h"
+#include "Gameplay/Player/Components/PlayerPingComponent.h"
+#include "Gameplay/Player/Components/PlayerSoundComponent.h"
 #include "Gameplay/World/Interactive/DisintegratableComponent.h"
 #include "Gameplay/World/Interactive//DesintegrationActor.h"
 
@@ -69,7 +69,6 @@ void AMainPlayerController::HandleCrowdActorReady(ACrowdActor* InCrowdActor) {
 
 	if (ControlledCharacter) {
 		Swarm->SetTargetActor(ControlledCharacter);
-		Swarm->SetPingComp(ControlledCharacter->GetPlayerPingComponent());
 	}
 }
 

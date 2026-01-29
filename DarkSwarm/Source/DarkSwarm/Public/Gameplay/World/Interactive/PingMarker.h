@@ -17,15 +17,22 @@ public:
 	APingMarker();
 
 protected:
-
+	virtual void BeginPlay();
+	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* VisualMesh;
-
-	UPROPERTY(EditAnywhere, Category = "Ping")
+	
+	UPROPERTY(EditAnywhere, Category = "Ping|Material")
 	UMaterialInterface* PingMaterial;
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Ping|Mesh")
+	UStaticMesh* CubeMesh;
 
-	UPROPERTY(EditAnywhere, Category = "Mesh")
-	UStaticMesh* CustomMesh;
+	UPROPERTY(EditDefaultsOnly, Category = "Ping|Mesh")
+	UStaticMesh* PlaneMesh;
+
+
+
 
 public:
 	void SetFormVisual(ESwarmForm Type);

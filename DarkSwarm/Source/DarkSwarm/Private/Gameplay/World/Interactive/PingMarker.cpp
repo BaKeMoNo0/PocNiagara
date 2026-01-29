@@ -9,6 +9,13 @@ APingMarker::APingMarker() {
 	RootComponent = VisualMesh;
 	VisualMesh->SetupAttachment(RootComponent);
 	VisualMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	VisualMesh->SetMobility(EComponentMobility::Movable);
+}
+
+void APingMarker::BeginPlay() {
+	Super::BeginPlay();
+	
+	//SetFormVisual(ESwarmForm::Cube);
 }
 
 
@@ -17,11 +24,11 @@ void APingMarker::SetFormVisual(ESwarmForm Type) {
 	
 	switch (Type) {
 	case ESwarmForm::Cube:
-		VisualMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cube")));
+		VisualMesh->SetStaticMesh(CubeMesh);
 		VisualMesh->SetWorldScale3D(FVector(1.0f));
 		break;
 	case ESwarmForm::Plane:
-		VisualMesh->SetStaticMesh(LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Plane")));
+		VisualMesh->SetStaticMesh(PlaneMesh);
 		VisualMesh->SetWorldScale3D(FVector(1.5f));
 		break;
 	default:

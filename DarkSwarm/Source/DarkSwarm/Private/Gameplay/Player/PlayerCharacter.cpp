@@ -5,9 +5,9 @@
 #include "Core/DarkSwarmGameMode.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Gameplay/Swarm/SwarmPlatform.h"
-#include "Gameplay/Player/Component/PlayerMovementComponent.h"
-#include "Gameplay/Player/Component/PlayerPingComponent.h"
-#include "Gameplay/Player/Component/PlayerSoundComponent.h"
+#include "Gameplay/Player/Components/PlayerMovementComponent.h"
+#include "Gameplay/Player/Components/PlayerPingComponent.h"
+#include "Gameplay/Player/Components/PlayerSoundComponent.h"
 
 APlayerCharacter::APlayerCharacter() {
 	GetCapsuleComponent()->InitCapsuleSize(34.f, 88.f);

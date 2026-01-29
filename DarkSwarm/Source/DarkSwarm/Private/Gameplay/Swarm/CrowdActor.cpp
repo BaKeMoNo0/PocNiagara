@@ -1,7 +1,6 @@
 #include "Gameplay/Swarm/CrowdActor.h"
 #include "NiagaraComponent.h"
 #include "Gameplay/Player/PlayerCharacter.h"
-#include "Gameplay/Player/Component/PlayerPingComponent.h"
 #include "Gameplay/Swarm/Components/CrowdVisualComponent.h"
 
 
@@ -71,8 +70,8 @@ void ACrowdActor::TickMovingToTarget(float DeltaTime) {
 	MoveTowardsDestination(DeltaTime);
 
 	const float Distance = FVector::Dist(GetActorLocation(), Destination);
-	if (Distance <= 5.0f) {
-		if (PingComp && PingComp->IsThisMyActiveMarker(CurrentPingMarkerToDestroy)) PingComp->DestroyPingMarker();
+	if (Distance <= 5.0f && CrowdState == ECrowdState::MovingToTarget) {
+		OnDestinationReached.Broadcast();
 		SetCrowdState(ECrowdState::SlowingDown);
 	}
 	VisualComp->ApplyVisualState(ActionVisualParams);

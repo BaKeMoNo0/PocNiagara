@@ -23,6 +23,8 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 
 	UPROPERTY()
 	ADarkSwarmGameState* GS;
@@ -47,5 +49,5 @@ public:
 	void StopAiming();
 	void AdjustPingDistance(float AxisValue);
 	void DestroyPingMarker();
-	bool IsThisMyActiveMarker(APingMarker* Marker) const;
+	void OnCrowdReachedDestination();
 };
