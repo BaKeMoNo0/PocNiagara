@@ -20,7 +20,7 @@ class DARKSWARM_API UCrowdVisualComponent : public UActorComponent {
 	GENERATED_BODY()
 
 public:
-	void Init(UNiagaraComponent* InNiagara, UStaticMeshComponent* InCollisionMesh, USceneComponent* InSphere);
+	void Init(UNiagaraComponent* InNiagara, UStaticMeshComponent* InCollisionMesh, UStaticMeshComponent* InSphere);
 	void Initialize(const FCrowdVisualParams& MaxVisualParams, float ParticleSpacing);
 	
 	// Called ONCE when entering a visual state

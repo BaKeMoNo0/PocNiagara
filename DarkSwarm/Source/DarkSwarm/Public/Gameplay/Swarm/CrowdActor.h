@@ -74,7 +74,7 @@ protected:
 	
 	
 	float CurrentBlendAlpha = 0.0f;
-	ESwarmForm SwarmForm;
+	ESwarmForm SwarmForm = ESwarmForm::Cube;;
 	ECrowdState CrowdState;
 	
 	

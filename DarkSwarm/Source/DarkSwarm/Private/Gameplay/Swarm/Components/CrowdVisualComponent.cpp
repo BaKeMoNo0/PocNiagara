@@ -5,7 +5,7 @@
 #include "Gameplay/Swarm/Types/SwarmForm.h"
 
 
-void UCrowdVisualComponent::Init(UNiagaraComponent* InNiagara, UStaticMeshComponent* InCollisionMesh, USceneComponent* InSphere){
+void UCrowdVisualComponent::Init(UNiagaraComponent* InNiagara, UStaticMeshComponent* InCollisionMesh, UStaticMeshComponent* InSphere){
 	Niagara = InNiagara;
 	CollisionMesh = InCollisionMesh;
 	Sphere = InSphere;
@@ -67,6 +67,7 @@ void UCrowdVisualComponent::ApplyFormVisual(ESwarmForm SwarmForm, int ParticleCo
 				const float Size = CountPerAxisCube * ParticleSpacing * MeshScale;
 				NewScale = FVector(Size / UnitMeshSize);
 				CollisionMesh->SetStaticMesh(CubeMesh);
+				CollisionMesh->RecreatePhysicsState();
 				break;
 		}
 		case ESwarmForm::Plane: {
@@ -75,6 +76,7 @@ void UCrowdVisualComponent::ApplyFormVisual(ESwarmForm SwarmForm, int ParticleCo
 				const float Size = CountPerAxisPlane * ParticleSpacing * MeshScale;
 				NewScale = FVector(Size / UnitMeshSize, Size / UnitMeshSize, 1.0f);
 				CollisionMesh->SetStaticMesh(PlaneMesh);
+				CollisionMesh->RecreatePhysicsState();
 				break;
 		}
 		default: break;

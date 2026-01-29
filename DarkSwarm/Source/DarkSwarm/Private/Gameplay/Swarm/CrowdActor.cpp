@@ -15,8 +15,8 @@ ACrowdActor::ACrowdActor() {
 	CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CollisionMesh"));
 	CollisionMesh->SetupAttachment(SphereMesh);
 	
+	CollisionMesh->SetCollisionProfileName(TEXT("BlockAll"));
 	CollisionMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	CollisionMesh->SetCollisionProfileName(TEXT("NoCollision"));
 	CollisionMesh->SetGenerateOverlapEvents(false);
 	CollisionMesh->SetMobility(EComponentMobility::Movable);
 	
@@ -34,9 +34,10 @@ void ACrowdActor::BeginPlay() {
 	
 	VisualComp->Init(NiagaraSystem, CollisionMesh, SphereMesh);
 	VisualComp->Initialize(ActionVisualParams, ParticleSpacing);
-	VisualComp->EnsureActiveNiagara();
 	
-	SetSwarmForm(ESwarmForm::Cube);
+	VisualComp->ApplyFormVisual(SwarmForm, ActionVisualParams.ParticleCount, ParticleSpacing, ActionVisualParams.MeshScale);
+	
+	VisualComp->EnsureActiveNiagara();
 	SetCrowdState(ECrowdState::FollowingPlayer);
 }
 
