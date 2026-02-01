@@ -9,7 +9,7 @@
 #include "MainPlayerController.generated.h"
 
 
-class ADesintegrationActor;
+class ADisintegratableActor;
 
 UCLASS()
 class DARKSWARM_API AMainPlayerController : public APlayerController {
@@ -75,7 +75,7 @@ protected:
 	UInputAction *FootstepAction;
 	
 	UPROPERTY()
-	ADesintegrationActor* CurrentTargetActor = nullptr;
+	TSet<TWeakObjectPtr<ADisintegratableActor>> NearbyDisintegratables;
 	
 	void CallMove(const FInputActionValue &Value);
 	void CallRun();
@@ -89,13 +89,18 @@ protected:
 	void AdjustPingDistance(const FInputActionValue& Value);
 	void SetFormCube();
 	void SetFormPlane();
-	void TriggerDesintegration();
+	void TriggerDisintegration();
 	void CallFoostep(const FInputActionValue& Value);
 	
 	void InitWidget();
+	
+	UFUNCTION()
+	void HandleDisintegrationStarted(ADisintegratableActor* Source);
+	
+	UFUNCTION()
+	void OnEnterInteractable(ADisintegratableActor* Source, AActor* Interactor);
 
-public:
-	ADesintegrationActor* GetCurrentTargetActor() const;
-	void SetCurrentTargetActor(ADesintegrationActor* Target);
-	void ClearCurrentTargetActor();
+	UFUNCTION()
+	void OnExitInteractable(ADisintegratableActor* Source, AActor* Interactor);
+
 };

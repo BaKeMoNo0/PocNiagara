@@ -2,6 +2,7 @@
 #include "NiagaraComponent.h"
 #include "Gameplay/Player/PlayerCharacter.h"
 #include "Gameplay/Swarm/Components/CrowdVisualComponent.h"
+#include "Gameplay/World/Interactive/DisintegratableActor.h"
 
 
 ACrowdActor::ACrowdActor() {
@@ -38,6 +39,8 @@ void ACrowdActor::BeginPlay() {
 	
 	VisualComp->EnsureActiveNiagara();
 	SetCrowdState(ECrowdState::FollowingPlayer);
+	
+	VisualComp->OnAbsorptionFinishedEvent().AddUObject(this,&ACrowdActor::HandleAbsorptionFinished);
 }
 
 
@@ -45,10 +48,11 @@ void ACrowdActor::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
 	switch (CrowdState) {
-		case ECrowdState::FollowingPlayer: TickFollowingPlayer(DeltaTime); break;
-		case ECrowdState::MovingToTarget:  TickMovingToTarget(DeltaTime);  break;
-		case ECrowdState::SlowingDown:     TickSlowingDown(DeltaTime);     break;
-		case ECrowdState::StaticForm:      TickIdle(DeltaTime);            break;
+		case ECrowdState::FollowingPlayer:		    TickFollowingPlayer(DeltaTime);			 break;
+		case ECrowdState::MovingToTarget:		    TickMovingToTarget(DeltaTime);			 break;
+		case ECrowdState::SlowingDown:			    TickSlowingDown(DeltaTime);				 break;
+		case ECrowdState::StaticForm:			    TickIdle(DeltaTime);					 break;
+		case ECrowdState::AbsorbDisintegratedActor: TickAbsorbDisintegratedActor(DeltaTime); break;
 		default: break;
 	}
 }
@@ -89,10 +93,42 @@ void ACrowdActor::TickSlowingDown(float DeltaTime) {
 void ACrowdActor::TickConsumingPlayer(float){ /* todo */ }
 void ACrowdActor::TickReforming(float) { /* todo */ }
 
+void ACrowdActor::TickAbsorbDisintegratedActor(float) {
+	for (auto It = AbsorbingActors.CreateIterator(); It; ++It) {
+		if (!It->IsValid()) {
+			It.RemoveCurrent();
+			continue;
+		}
+		
+		VisualComp->UpdateAttractionTarget(It->Get()->GetNiagaraComp());
+	}
+
+	if (AbsorbingActors.IsEmpty()) SetCrowdState(ECrowdState::FollowingPlayer);
+}
+
 
 void ACrowdActor::MoveTowardsDestination(float DeltaTime) {
 	FVector NewLocation = FMath::VInterpTo(GetActorLocation(), Destination, DeltaTime, FollowSpeed);
 	SetActorLocation(NewLocation);
+}
+
+void ACrowdActor::HandleAbsorptionFinished(ADisintegratableActor* Source) {
+	AbsorbingActors.Remove(Source);
+	if (AbsorbingActors.IsEmpty()) SetCrowdState(ECrowdState::FollowingPlayer);
+}
+
+
+void ACrowdActor::AbsorbDisintegratedActor(ADisintegratableActor* Source) {
+	if (!Source) return;
+
+	if (CrowdState != ECrowdState::AbsorbDisintegratedActor)
+	{
+		SetCrowdState(ECrowdState::AbsorbDisintegratedActor);
+		AbsorbingActors.Reset();
+	}
+
+	AbsorbingActors.Add(Source);
+	VisualComp->BeginAbsorption(Source);
 }
 
 

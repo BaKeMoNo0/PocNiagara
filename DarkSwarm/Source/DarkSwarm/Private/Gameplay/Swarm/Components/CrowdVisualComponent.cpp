@@ -1,8 +1,10 @@
 
 #include "Gameplay/Swarm/Components/CrowdVisualComponent.h"
 #include "NiagaraComponent.h"
+#include "Gameplay/Swarm/CrowdActor.h"
 #include "Gameplay/Swarm/Types/CrowdVisualParams.h"
 #include "Gameplay/Swarm/Types/SwarmForm.h"
+#include "Gameplay/World/Interactive/DisintegratableActor.h"
 
 
 void UCrowdVisualComponent::Init(UNiagaraComponent* InNiagara, UStaticMeshComponent* InCollisionMesh, UStaticMeshComponent* InSphere){
@@ -89,4 +91,41 @@ void UCrowdVisualComponent::ApplyFormVisual(ESwarmForm SwarmForm, int ParticleCo
 
 void UCrowdVisualComponent::EnsureActiveNiagara() {
 	if (Niagara && !Niagara->IsActive()) Niagara->Activate(true);
+}
+
+void UCrowdVisualComponent::BeginAbsorption(ADisintegratableActor* DisActor) {
+	if (!DisActor) return;
+	
+	UNiagaraComponent* Ng = DisActor->GetNiagaraComp();
+	if (!Ng) return;
+	
+	CurrentAbsorbingActor = DisActor;
+
+	Ng->SetFloatParameter(TEXT("User.AttractionStrength"), 50.f);
+	Ng->SetFloatParameter(TEXT("User.NoiseForceDesintegration"), 50.f);
+
+	Ng->OnSystemFinished.Clear();
+	Ng->OnSystemFinished.AddDynamic(this, &UCrowdVisualComponent::HandleNiagaraFinished);
+
+	Ng->Activate(true);
+}
+
+
+void UCrowdVisualComponent::UpdateAttractionTarget(UNiagaraComponent* Ng) {
+	if (!Ng) return;
+	Ng->SetVectorParameter(FName("User.AttractionTarget"), Sphere->GetComponentLocation());
+}
+
+
+void UCrowdVisualComponent::HandleNiagaraFinished(UNiagaraComponent* FinishedComponent) {
+	if (ACrowdActor* Crowd = Cast<ACrowdActor>(GetOwner())) {
+		Crowd->SetActionParticleCount(100);
+		Crowd->GetNiagaraSystem()->SetIntParameter(FName("User.SpawnCount"), Crowd->GetActionVisualParams().ParticleCount);
+		Crowd->GetNiagaraSystem()->ReinitializeSystem();
+	}
+
+	if (CurrentAbsorbingActor){
+		OnAbsorptionFinished.Broadcast(CurrentAbsorbingActor);
+		CurrentAbsorbingActor = nullptr;
+	}
 }

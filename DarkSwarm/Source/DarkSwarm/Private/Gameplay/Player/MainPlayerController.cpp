@@ -1,6 +1,7 @@
 
 #include "Gameplay/Player/MainPlayerController.h"
 
+#include "EngineUtils.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Blueprint/UserWidget.h"
@@ -8,8 +9,8 @@
 #include "Gameplay/Player/Components/PlayerMovementComponent.h"
 #include "Gameplay/Player/Components/PlayerPingComponent.h"
 #include "Gameplay/Player/Components/PlayerSoundComponent.h"
-#include "Gameplay/World/Interactive/DisintegratableComponent.h"
-#include "Gameplay/World/Interactive//DesintegrationActor.h"
+#include "Gameplay/Systems/Desintegration//DisintegratableComponent.h"
+#include "Gameplay/World/Interactive//DisintegratableActor.h"
 
 
 void AMainPlayerController::BeginPlay() {
@@ -21,6 +22,17 @@ void AMainPlayerController::BeginPlay() {
 
 		if (ACrowdActor* Existing = GS->GetCrowdActor()) HandleCrowdActorReady(Existing);
 	}
+	
+	for (TActorIterator<ADisintegratableActor> It(GetWorld()); It; ++It) {
+		ADisintegratableActor* Actor = *It;
+		if (!Actor) continue;
+
+
+		Actor->OnInteractorEnterEvent().AddDynamic(this, &AMainPlayerController::OnEnterInteractable);
+		Actor->OnInteractorExitEvent().AddDynamic(this, &AMainPlayerController::OnExitInteractable);
+		Actor->GetDisintegratableComponent()->OnDisintegrationStartedEvent().AddDynamic(this, &AMainPlayerController::HandleDisintegrationStarted);
+	}
+
 }
 
 void AMainPlayerController::SetupInputComponent() {
@@ -49,7 +61,7 @@ void AMainPlayerController::SetupInputComponent() {
 		EnhancedInputComponent->BindAction(SelectCubeAction, ETriggerEvent::Triggered, this, &AMainPlayerController::SetFormCube);
 		EnhancedInputComponent->BindAction(SelectPlaneAction, ETriggerEvent::Triggered, this, &AMainPlayerController::SetFormPlane);
 
-		EnhancedInputComponent->BindAction(DesintegrationAction, ETriggerEvent::Triggered, this, &AMainPlayerController::TriggerDesintegration);
+		EnhancedInputComponent->BindAction(DesintegrationAction, ETriggerEvent::Triggered, this, &AMainPlayerController::TriggerDisintegration);
 		
 		EnhancedInputComponent->BindAction(FootstepAction, ETriggerEvent::Triggered, this, &AMainPlayerController::CallFoostep);
 	}
@@ -82,7 +94,6 @@ void AMainPlayerController::InitWidget() {
 		}
 	}
 }
-
 
 
 void AMainPlayerController::CallMove(const FInputActionValue &Value) {
@@ -157,14 +168,49 @@ void AMainPlayerController::SetFormPlane() {
 
 
 
-void AMainPlayerController::TriggerDesintegration() {
-	if (CurrentTargetActor) {
-		if (UDisintegratableComponent* DisComponent = CurrentTargetActor->FindComponentByClass<UDisintegratableComponent>()) {
+//Disintegration
+
+void AMainPlayerController::HandleDisintegrationStarted(ADisintegratableActor* Source) {
+	if (!Swarm) return;
+	Swarm->AbsorbDisintegratedActor(Source);
+}
+
+
+void AMainPlayerController::TriggerDisintegration() {
+	UE_LOG(LogTemp, Warning, TEXT("TriggerDisintegration called. Count = %d"), NearbyDisintegratables.Num());
+
+	if (NearbyDisintegratables.IsEmpty()) return;
+	
+	for (const TWeakObjectPtr<ADisintegratableActor>& WeakActor : NearbyDisintegratables) {
+		if (!WeakActor.IsValid()) continue;
+		
+		if (UDisintegratableComponent* DisComponent = WeakActor->FindComponentByClass<UDisintegratableComponent>()) {
 			DisComponent->TriggerDisintegration();
-			CurrentTargetActor = nullptr;
 		}
 	}
 }
+
+
+void AMainPlayerController::OnEnterInteractable(ADisintegratableActor* Source, AActor* Interactor) {
+	if (Interactor != GetPawn()) return;
+	
+	UE_LOG(LogTemp, Warning, TEXT("ENTER overlap with %s"), *Source->GetName());
+
+	NearbyDisintegratables.Add(Source);
+	
+	// UI : "Appuyer sur E"
+}
+
+void AMainPlayerController::OnExitInteractable(ADisintegratableActor* Source, AActor* Interactor) {
+	if (Interactor != GetPawn()) return;
+
+	UE_LOG(LogTemp, Warning, TEXT("Exit overlap with %s"), *Source->GetName());
+	
+	NearbyDisintegratables.Remove(Source);
+	// UI off
+}
+
+
 
 void AMainPlayerController::CallFoostep(const FInputActionValue& Value) {
 	if (!ControlledCharacter) return;
@@ -177,7 +223,3 @@ void AMainPlayerController::CallFoostep(const FInputActionValue& Value) {
 	
 	ControlledCharacter->TrySpawnFootStep(bIsLeftFoot);
 }
-
-ADesintegrationActor* AMainPlayerController::GetCurrentTargetActor() const { return CurrentTargetActor; }
-void AMainPlayerController::SetCurrentTargetActor(ADesintegrationActor* Target) { CurrentTargetActor = Target; }
-void AMainPlayerController::ClearCurrentTargetActor() { CurrentTargetActor = nullptr; }

@@ -9,5 +9,6 @@ enum class ECrowdState : uint8 {
 	MovingToTarget,
 	SlowingDown,
 	ConsumingPlayer,
-	Reforming
+	Reforming,
+	AbsorbDisintegratedActor
 };

@@ -7,10 +7,12 @@
 
 
 /**
- * Pure visual/physical representation of the swarm.
- * NO gameplay logic.
+ * Handles purely visual feedback for the swarm.
+ * No gameplay state changes should be performed here directly.
  */
 
+
+class ADisintegratableActor;
 struct FCrowdVisualParams;
 class UNiagaraComponent;
 class UStaticMeshComponent;
@@ -18,6 +20,13 @@ class UStaticMeshComponent;
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class DARKSWARM_API UCrowdVisualComponent : public UActorComponent {
 	GENERATED_BODY()
+	
+protected:
+	DECLARE_MULTICAST_DELEGATE_OneParam(
+		FOnAbsorptionFinished,
+		ADisintegratableActor*
+		);
+	FOnAbsorptionFinished OnAbsorptionFinished;
 
 public:
 	void Init(UNiagaraComponent* InNiagara, UStaticMeshComponent* InCollisionMesh, UStaticMeshComponent* InSphere);
@@ -31,6 +40,15 @@ public:
 	void UpdateSlowingDown(float DeltaTime, float& InOutBlendAlpha, float BlendTarget);
 	void ApplyFormVisual(ESwarmForm SwarmForm, int ParticleCount, float Spacing, float MeshScale);
 	void EnsureActiveNiagara();
+	
+	/**
+	 * Starts the visual absorption of a disintegrated actor.
+	 * Completion is reported via OnAbsorptionFinished.
+	 */
+	void BeginAbsorption(ADisintegratableActor* DisActor);
+	void UpdateAttractionTarget(UNiagaraComponent* Niagara);
+	
+	FOnAbsorptionFinished& OnAbsorptionFinishedEvent() { return OnAbsorptionFinished; }
 	
 private:
 	UPROPERTY()
@@ -50,4 +68,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category="Swarm|Mesh")
 	UMaterialInterface* InvisibleMaterial;
+	
+	UPROPERTY()
+	ADisintegratableActor* CurrentAbsorbingActor;
+	
+protected:
+	UFUNCTION()
+	void HandleNiagaraFinished(UNiagaraComponent* FinishedComponent);
+	
 };

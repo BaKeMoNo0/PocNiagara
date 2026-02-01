@@ -74,14 +74,13 @@ public:
 	void TrySpawnFootStep(bool bIsLeftFoot);
 	void Die();
 	
-	UPlayerMovementComponent *GetPlayerMovementComponent() const;
-	UPlayerPingComponent *GetPlayerPingComponent() const;
-	UPlayerSoundComponent *GetPlayerSoundComponent() const;
-	
-	UAudioComponent *GetAudioComponent() const;
-	
-	FVector GetLastCheckpointLocation() const;
-	bool GetIsDead() const;
-	
-	void SetLastCheckpointLocation(FVector NewLastCheckpointLocation);
+	UPlayerMovementComponent* GetPlayerMovementComponent() const { return PlayerMovementComponent;}
+	UPlayerPingComponent* GetPlayerPingComponent() const { return PlayerPingComponent; }
+	UPlayerSoundComponent* GetPlayerSoundComponent() const { return PlayerSoundComponent;}
+	UAudioComponent* GetAudioComponent() const { return AudioComponent;}
+	FVector GetLastCheckpointLocation() const { return LastCheckpointLocation; }
+	bool GetIsDead() const { return bIsDead; }
+
+
+	void SetLastCheckpointLocation(FVector NewRespawnLocation) { LastCheckpointLocation = NewRespawnLocation; }
 };

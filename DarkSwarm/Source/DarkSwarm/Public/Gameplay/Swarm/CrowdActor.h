@@ -7,10 +7,18 @@
 #include "Types/CrowdVisualParams.h"
 #include "CrowdActor.generated.h"
 
+class ADisintegratableActor;
 class UCrowdVisualComponent;
 class UNiagaraComponent;
 class APlayerCharacter;
 class APingMarker;
+
+
+/**
+ * Central authority for swarm behavior.
+ * Owns the crowd state machine and reacts to external events
+ * (disintegration, absorption completion, player commands).
+ */
 
 
 UCLASS()
@@ -31,12 +39,14 @@ protected:
 	
 	void TickConsumingPlayer(float); //todo
 	void TickReforming(float); //todo
+	void TickAbsorbDisintegratedActor(float);
 
 	void OnEnterState(ECrowdState NewState);
 	void OnExitState(ECrowdState OldState);
 	void OnConsumeFXFinished(); //todo
 	
 	void MoveTowardsDestination(float DeltaTime);
+	void HandleAbsorptionFinished(ADisintegratableActor* Source);
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UStaticMeshComponent* SphereMesh;
@@ -85,6 +95,9 @@ protected:
 	FVector TargetLocation;
 	FVector Destination;
 	
+	UPROPERTY()
+	TSet<TWeakObjectPtr<ADisintegratableActor>> AbsorbingActors;	
+	
 public:
 	
 	FOnSwarmConsumeFinished& OnConsumeFinishedEvent() { return OnConsumeFinished; }
@@ -96,6 +109,7 @@ public:
 	
 	void MoveTo(const FVector& NewTargetLocation);
 	void ReturnToPlayer(APlayerCharacter* Player);
+	void AbsorbDisintegratedActor(ADisintegratableActor* Source);
 	
 
 	AActor* GetTargetActor() const { return TargetActor; }

@@ -10,7 +10,14 @@
 #include "Gameplay/Player/Components/PlayerSoundComponent.h"
 
 APlayerCharacter::APlayerCharacter() {
-	GetCapsuleComponent()->InitCapsuleSize(34.f, 88.f);
+	PrimaryActorTick.bCanEverTick = false;
+	
+	UCapsuleComponent* Capsule = GetCapsuleComponent();
+	Capsule->InitCapsuleSize(34.f, 88.f);
+	
+	Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	Capsule->SetGenerateOverlapEvents(true); 
+	
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, 0.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
 
@@ -43,8 +50,6 @@ APlayerCharacter::APlayerCharacter() {
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
-	//PrimaryActorTick.bCanEverTick          = true;
-	//PrimaryActorTick.bStartWithTickEnabled = true;
 }
 
 
@@ -101,17 +106,3 @@ void APlayerCharacter::Die() {
 	
 	if (ADarkSwarmGameMode* GM = Cast<ADarkSwarmGameMode>(GetWorld()->GetAuthGameMode())) GM->OnPlayerDied(this);
 }
-
-UPlayerMovementComponent* APlayerCharacter::GetPlayerMovementComponent() const { return PlayerMovementComponent;}
-UPlayerPingComponent* APlayerCharacter::GetPlayerPingComponent() const { return PlayerPingComponent; }
-UPlayerSoundComponent* APlayerCharacter::GetPlayerSoundComponent() const { return PlayerSoundComponent;}
-UAudioComponent* APlayerCharacter::GetAudioComponent() const { return AudioComponent;}
-FVector APlayerCharacter::GetLastCheckpointLocation() const { return LastCheckpointLocation; }
-bool APlayerCharacter::GetIsDead() const { return bIsDead; }
-
-
-void APlayerCharacter::SetLastCheckpointLocation(FVector NewRespawnLocation) { LastCheckpointLocation = NewRespawnLocation; }
-
-
-
-
