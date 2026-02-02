@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "DisintegratableActor.generated.h"
 
+class UWidgetComponent;
 class UDisintegratableComponent;
 class UNiagaraComponent;
 
@@ -29,6 +30,16 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	
+	void UpdateWidgetFacingCamera();
+	
+	
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	USceneComponent* WidgetAnchor;
+	
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	UWidgetComponent* InteractWidgetComp;
+	
 	
 	UPROPERTY()
 	UDisintegratableComponent* DisintegratableComp;

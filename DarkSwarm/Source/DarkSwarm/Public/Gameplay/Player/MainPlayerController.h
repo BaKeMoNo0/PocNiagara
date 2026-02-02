@@ -34,6 +34,7 @@ protected:
 	UPROPERTY()
 	UUserWidget *MainMenuWidget;
 
+
 	// Binding function for movement
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputMappingContext *InputMappingContext;

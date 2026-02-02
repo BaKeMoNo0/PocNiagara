@@ -177,8 +177,6 @@ void AMainPlayerController::HandleDisintegrationStarted(ADisintegratableActor* S
 
 
 void AMainPlayerController::TriggerDisintegration() {
-	UE_LOG(LogTemp, Warning, TEXT("TriggerDisintegration called. Count = %d"), NearbyDisintegratables.Num());
-
 	if (NearbyDisintegratables.IsEmpty()) return;
 	
 	for (const TWeakObjectPtr<ADisintegratableActor>& WeakActor : NearbyDisintegratables) {
@@ -193,21 +191,12 @@ void AMainPlayerController::TriggerDisintegration() {
 
 void AMainPlayerController::OnEnterInteractable(ADisintegratableActor* Source, AActor* Interactor) {
 	if (Interactor != GetPawn()) return;
-	
-	UE_LOG(LogTemp, Warning, TEXT("ENTER overlap with %s"), *Source->GetName());
-
 	NearbyDisintegratables.Add(Source);
-	
-	// UI : "Appuyer sur E"
 }
 
 void AMainPlayerController::OnExitInteractable(ADisintegratableActor* Source, AActor* Interactor) {
 	if (Interactor != GetPawn()) return;
-
-	UE_LOG(LogTemp, Warning, TEXT("Exit overlap with %s"), *Source->GetName());
-	
 	NearbyDisintegratables.Remove(Source);
-	// UI off
 }
 
 
