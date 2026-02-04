@@ -4,6 +4,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Core/DarkSwarmGameMode.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Gameplay/Player/Components/PlayerInteractionComponent.h"
 #include "Gameplay/Swarm/SwarmPlatform.h"
 #include "Gameplay/Player/Components/PlayerMovementComponent.h"
 #include "Gameplay/Player/Components/PlayerPingComponent.h"
@@ -38,7 +39,7 @@ APlayerCharacter::APlayerCharacter() {
 
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->AirControl = 0.35f;
-	GetCharacterMovement()->MaxWalkSpeed = 500.f;
+	GetCharacterMovement()->MaxWalkSpeed = 250.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
@@ -50,15 +51,17 @@ APlayerCharacter::APlayerCharacter() {
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+	
+	PlayerMovementComponent = CreateDefaultSubobject<UPlayerMovementComponent>(TEXT("PlayerMovementComp"));
+	PlayerPingComponent = CreateDefaultSubobject<UPlayerPingComponent>(TEXT("PlayerPingComp"));
+	PlayerSoundComponent = CreateDefaultSubobject<UPlayerSoundComponent>(TEXT("PlayerSoundComp"));
+	PlayerInteractionComponent = CreateDefaultSubobject<UPlayerInteractionComponent>(TEXT("PlayerInteractionComp"));
 }
 
 
 void APlayerCharacter::BeginPlay() {
 	Super::BeginPlay();
 	
-	PlayerMovementComponent = FindComponentByClass<UPlayerMovementComponent>();
-	PlayerPingComponent = FindComponentByClass<UPlayerPingComponent>();
-	PlayerSoundComponent = FindComponentByClass<UPlayerSoundComponent>();
 	LastCheckpointLocation = GetActorLocation();
 }
 

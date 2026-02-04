@@ -23,6 +23,8 @@ void UCrowdVisualComponent::Initialize(const FCrowdVisualParams& MaxVisualParams
 	Niagara->SetFloatParameter(FName("User.Spacing"), ParticleSpacing);
 }
 
+
+
 void UCrowdVisualComponent::ApplyVisualState(const FCrowdVisualParams& VisualParams) {
 	check(Niagara);
 
@@ -39,7 +41,6 @@ void UCrowdVisualComponent::UpdateBlend(float BlendAlpha) {
 	Niagara->SetVectorParameter(TEXT("User.SpherePos"), Sphere->GetComponentLocation());
 }
 
-
 void UCrowdVisualComponent::UpdateSlowingDown(float DeltaTime, float& InOutBlendAlpha, float BlendTarget){
 	InOutBlendAlpha = FMath::FInterpTo(InOutBlendAlpha, BlendTarget, DeltaTime, 0.25f);
 
@@ -51,6 +52,8 @@ void UCrowdVisualComponent::UpdateSlowingDown(float DeltaTime, float& InOutBlend
 		CollisionMesh->SetCollisionObjectType(ECC_WorldStatic);
 	}
 }
+
+
 
 
 void UCrowdVisualComponent::ApplyFormVisual(ESwarmForm SwarmForm, int ParticleCount, float ParticleSpacing, float MeshScale) {
@@ -92,6 +95,9 @@ void UCrowdVisualComponent::ApplyFormVisual(ESwarmForm SwarmForm, int ParticleCo
 void UCrowdVisualComponent::EnsureActiveNiagara() {
 	if (Niagara && !Niagara->IsActive()) Niagara->Activate(true);
 }
+
+
+
 
 void UCrowdVisualComponent::BeginAbsorption(ADisintegratableActor* DisActor) {
 	if (!DisActor) return;

@@ -9,32 +9,54 @@
 #include "MainPlayerController.generated.h"
 
 
-class ADisintegratableActor;
-
 UCLASS()
 class DARKSWARM_API AMainPlayerController : public APlayerController {
 	GENERATED_BODY()
-
-	UPROPERTY()
-	APlayerCharacter* ControlledCharacter;
-	UPROPERTY()
-	ACrowdActor* Swarm;
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* InPawn) override;
 	
+	void HandleMove(const FInputActionValue& Value);
+	void HandleLook(const FInputActionValue& Value);
+
+	void HandleStartRun();
+	void HandleStopRun();
+	void HandleJump();
+
+	void HandleStartAiming();
+	void HandleStopAiming();
+
+	void HandleCallbackSwarm();
+	void HandleSetFormCube();
+	void HandleSetFormPlane();
+
+	void HandleTriggerDisintegration();
+	void HandleFootstep(const FInputActionValue& Value);
+	
+	void HandleSound();
+	void AdjustPingDistance(const FInputActionValue& Value);
+	
+	void InitWidget();
+
+	// ===== Crowd =====
 	UFUNCTION()
 	void HandleCrowdActorReady(ACrowdActor* InCrowdActor);
 	
-
+	// ==== UI ====
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
 	UPROPERTY()
 	UUserWidget *MainMenuWidget;
 
+	// ===== References =====
+	UPROPERTY()
+	APlayerCharacter* ControlledCharacter = nullptr;
 
+	UPROPERTY()
+	ACrowdActor* Swarm = nullptr;
+	
 	// Binding function for movement
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputMappingContext *InputMappingContext;
@@ -74,34 +96,4 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction *FootstepAction;
-	
-	UPROPERTY()
-	TSet<TWeakObjectPtr<ADisintegratableActor>> NearbyDisintegratables;
-	
-	void CallMove(const FInputActionValue &Value);
-	void CallRun();
-	void CallStopRunning();
-	void CallJump();
-	void CallLook(const FInputActionValue &Value);
-	void CallStartAiming();
-	void CallStopAiming();
-	void CallBackActor();
-	void CallSound();
-	void AdjustPingDistance(const FInputActionValue& Value);
-	void SetFormCube();
-	void SetFormPlane();
-	void TriggerDisintegration();
-	void CallFoostep(const FInputActionValue& Value);
-	
-	void InitWidget();
-	
-	UFUNCTION()
-	void HandleDisintegrationStarted(ADisintegratableActor* Source);
-	
-	UFUNCTION()
-	void OnEnterInteractable(ADisintegratableActor* Source, AActor* Interactor);
-
-	UFUNCTION()
-	void OnExitInteractable(ADisintegratableActor* Source, AActor* Interactor);
-
 };

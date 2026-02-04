@@ -9,6 +9,7 @@
 #include "Gameplay/Swarm/SwarmPlatform.h"
 #include "PlayerCharacter.generated.h"
 
+class UPlayerInteractionComponent;
 class UPlayerSoundComponent;
 class UPlayerPingComponent;
 class UPlayerMovementComponent;
@@ -35,6 +36,8 @@ protected:
 	UPlayerPingComponent *PlayerPingComponent;
 	UPROPERTY()
 	UPlayerSoundComponent *PlayerSoundComponent;
+	UPROPERTY()
+	UPlayerInteractionComponent *PlayerInteractionComponent;
 
 	
 	
@@ -77,10 +80,12 @@ public:
 	UPlayerMovementComponent* GetPlayerMovementComponent() const { return PlayerMovementComponent;}
 	UPlayerPingComponent* GetPlayerPingComponent() const { return PlayerPingComponent; }
 	UPlayerSoundComponent* GetPlayerSoundComponent() const { return PlayerSoundComponent;}
+	UPlayerInteractionComponent* GetPlayerInteractionComponent() const { return PlayerInteractionComponent;}
+	
 	UAudioComponent* GetAudioComponent() const { return AudioComponent;}
 	FVector GetLastCheckpointLocation() const { return LastCheckpointLocation; }
 	bool GetIsDead() const { return bIsDead; }
-
+	
 
 	void SetLastCheckpointLocation(FVector NewRespawnLocation) { LastCheckpointLocation = NewRespawnLocation; }
 };

@@ -12,7 +12,6 @@ void ADarkSwarmGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 }
 
 
-
 void ADarkSwarmGameState::NotifyCrowdActorReady() {
 	if (!CrowdActor) return;
 	OnCrowdActorReady.Broadcast(CrowdActor);
@@ -20,11 +19,6 @@ void ADarkSwarmGameState::NotifyCrowdActorReady() {
 
 void ADarkSwarmGameState::OnRep_CrowdActor() { NotifyCrowdActorReady(); }
 
-
-
-ACrowdActor* ADarkSwarmGameState::GetCrowdActor() const { return CrowdActor; }
-
-bool ADarkSwarmGameState::HasCrowdActor() const { return CrowdActor != nullptr; }
 
 void ADarkSwarmGameState::SetCrowdActor(ACrowdActor* NewCrowdActor) {
 	if (CrowdActor == NewCrowdActor) return;

@@ -109,6 +109,8 @@ public:
 	
 	void MoveTo(const FVector& NewTargetLocation);
 	void ReturnToPlayer(APlayerCharacter* Player);
+	
+	UFUNCTION()
 	void AbsorbDisintegratedActor(ADisintegratableActor* Source);
 	
 

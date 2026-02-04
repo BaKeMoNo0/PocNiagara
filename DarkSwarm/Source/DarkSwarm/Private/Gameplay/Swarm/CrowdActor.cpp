@@ -41,6 +41,7 @@ void ACrowdActor::BeginPlay() {
 	SetCrowdState(ECrowdState::FollowingPlayer);
 	
 	VisualComp->OnAbsorptionFinishedEvent().AddUObject(this,&ACrowdActor::HandleAbsorptionFinished);
+	
 }
 
 
@@ -107,10 +108,30 @@ void ACrowdActor::TickAbsorbDisintegratedActor(float) {
 }
 
 
+
+
+
 void ACrowdActor::MoveTowardsDestination(float DeltaTime) {
 	FVector NewLocation = FMath::VInterpTo(GetActorLocation(), Destination, DeltaTime, FollowSpeed);
 	SetActorLocation(NewLocation);
 }
+
+void ACrowdActor::MoveTo(const FVector& NewTargetLocation) {
+	TargetActor = nullptr;
+	TargetLocation = NewTargetLocation;
+	CrowdState = ECrowdState::MovingToTarget;
+}
+
+
+void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
+	TargetActor = Player;
+	CurrentBlendAlpha = 0.f;
+	SetCrowdState(ECrowdState::FollowingPlayer);
+}
+
+
+
+
 
 void ACrowdActor::HandleAbsorptionFinished(ADisintegratableActor* Source) {
 	AbsorbingActors.Remove(Source);
@@ -121,8 +142,7 @@ void ACrowdActor::HandleAbsorptionFinished(ADisintegratableActor* Source) {
 void ACrowdActor::AbsorbDisintegratedActor(ADisintegratableActor* Source) {
 	if (!Source) return;
 
-	if (CrowdState != ECrowdState::AbsorbDisintegratedActor)
-	{
+	if (CrowdState != ECrowdState::AbsorbDisintegratedActor) {
 		SetCrowdState(ECrowdState::AbsorbDisintegratedActor);
 		AbsorbingActors.Reset();
 	}
@@ -130,6 +150,9 @@ void ACrowdActor::AbsorbDisintegratedActor(ADisintegratableActor* Source) {
 	AbsorbingActors.Add(Source);
 	VisualComp->BeginAbsorption(Source);
 }
+
+
+
 
 
 void ACrowdActor::ConsumePlayer(APlayerCharacter* Player) {
@@ -157,18 +180,8 @@ void ACrowdActor::OnPlayerRespawn(AActor* NewPlayer) {
 }
 
 
-void ACrowdActor::MoveTo(const FVector& NewTargetLocation) {
-	TargetActor = nullptr;
-	TargetLocation = NewTargetLocation;
-	CrowdState = ECrowdState::MovingToTarget;
-}
 
 
-void ACrowdActor::ReturnToPlayer(APlayerCharacter* Player) {
-	TargetActor = Player;
-	CurrentBlendAlpha = 0.f;
-	SetCrowdState(ECrowdState::FollowingPlayer);
-}
 
 
 void ACrowdActor::OnEnterState(ECrowdState NewState) {

@@ -5,6 +5,7 @@
 #include "Components/SphereComponent.h"
 #include "DisintegratableActor.generated.h"
 
+class ACrowdActor;
 class UWidgetComponent;
 class UDisintegratableComponent;
 class UNiagaraComponent;
@@ -24,6 +25,9 @@ class UNiagaraComponent;
 UCLASS()
 class DARKSWARM_API ADisintegratableActor : public AActor {
 	GENERATED_BODY()
+	
+private:
+	void HandleCrowdReady(ACrowdActor* Crowd);
 	
 public:
 	ADisintegratableActor();
@@ -67,7 +71,7 @@ protected:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnInteractorSignature OnInteractorExit;
-
+	
 	/**
 	 * Called when an actor enters the interaction sphere.
 	 * Only forwards the event; no gameplay logic should live here.

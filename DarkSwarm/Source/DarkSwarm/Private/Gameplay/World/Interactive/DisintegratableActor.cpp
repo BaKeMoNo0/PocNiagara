@@ -1,8 +1,14 @@
 #include "Gameplay/World/Interactive/DisintegratableActor.h"
 #include "NiagaraComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Core/DarkSwarmGameState.h"
+#include "Gameplay/Player/PlayerCharacter.h"
+#include "Gameplay/Player/Components/PlayerInteractionComponent.h"
+#include "Gameplay/Swarm/CrowdActor.h"
 #include "Gameplay/Systems/Desintegration/DisintegratableComponent.h"
 #include "Kismet/GameplayStatics.h"
+
+
 
 ADisintegratableActor::ADisintegratableActor() {
 	PrimaryActorTick.bCanEverTick = false;
@@ -48,7 +54,26 @@ ADisintegratableActor::ADisintegratableActor() {
 
 void ADisintegratableActor::BeginPlay() {
 	Super::BeginPlay();
+	if (APlayerCharacter* PlayerPawn = Cast<APlayerCharacter>(GetWorld()->GetFirstPlayerController()->GetPawn())) {
+		if (UPlayerInteractionComponent* InteractionComp = PlayerPawn->GetPlayerInteractionComponent()) {
+			OnInteractorEnter.AddDynamic(InteractionComp, &UPlayerInteractionComponent::RegisterInteractable);
+			OnInteractorExit.AddDynamic(InteractionComp, &UPlayerInteractionComponent::UnregisterInteractable);
+		}
+	}
+	
+	if (ADarkSwarmGameState* GS = GetWorld()->GetGameState<ADarkSwarmGameState>()) {
+		GS->OnCrowdActorReadyEvent().AddUObject(this, &ADisintegratableActor::HandleCrowdReady);
+
+		if (ACrowdActor* Existing = GS->GetCrowdActor()) HandleCrowdReady(Existing);
+	}
 }
+
+void ADisintegratableActor::HandleCrowdReady(ACrowdActor* Crowd) {
+	UE_LOG(LogTemp, Warning, TEXT("CrowdActor connected to Disintegratable"));
+
+	DisintegratableComp->OnDisintegrationStartedEvent().AddDynamic(Crowd, &ACrowdActor::AbsorbDisintegratedActor);
+}
+
 
 void ADisintegratableActor::UpdateWidgetFacingCamera() {
 	if (!InteractWidgetComp) return;
