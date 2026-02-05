@@ -9,6 +9,7 @@
 #include "Gameplay/Swarm/SwarmPlatform.h"
 #include "PlayerCharacter.generated.h"
 
+class USwarmAbilityComponent;
 class UPlayerInteractionComponent;
 class UPlayerSoundComponent;
 class UPlayerPingComponent;
@@ -30,57 +31,36 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	UCameraComponent *CameraComp;
 
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	UPlayerMovementComponent *PlayerMovementComponent;
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	UPlayerPingComponent *PlayerPingComponent;
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	UPlayerSoundComponent *PlayerSoundComponent;
-	UPROPERTY()
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	UPlayerInteractionComponent *PlayerInteractionComponent;
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	USwarmAbilityComponent *SwarmAbilityComponent;
 
 	
 	
-	UPROPERTY(EditAnywhere, Category = "Abilities")
-	TSubclassOf<ASwarmPlatform> FootstepActorClass;
-	UPROPERTY()
-	ASwarmPlatform* SpawnedFootstepActor;
-	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Audio")
     UAudioComponent* AudioComponent;
-	
-	UPROPERTY(EditAnywhere, Category = "Footstep")
-	float SideOffset = 25.f;
-	
-	UPROPERTY(EditAnywhere, Category = "Footstep")
-	float ForwardOffset = 100.f;
-	
-	UPROPERTY(EditAnywhere, Category="Footstep")
-	float StepImpulse = 500.f;
-	UPROPERTY()
-    bool bExpectLeftFoot = true;
-	
-	UPROPERTY(EditAnywhere, Category="Animation")
-	UAnimMontage *AnimStrideFootL;
-	
-	UPROPERTY(EditAnywhere, Category="Animation")
-	UAnimMontage *AnimStrideFootR;
 	
 	UPROPERTY()
 	FVector LastCheckpointLocation;
 	
 	UPROPERTY()
 	bool bIsDead = false;
-
-
+	
 public:
-	void TrySpawnFootStep(bool bIsLeftFoot);
 	void Die();
 	
 	UPlayerMovementComponent* GetPlayerMovementComponent() const { return PlayerMovementComponent;}
 	UPlayerPingComponent* GetPlayerPingComponent() const { return PlayerPingComponent; }
 	UPlayerSoundComponent* GetPlayerSoundComponent() const { return PlayerSoundComponent;}
 	UPlayerInteractionComponent* GetPlayerInteractionComponent() const { return PlayerInteractionComponent;}
+	USwarmAbilityComponent* GetSwarmAbilityComponent() const { return SwarmAbilityComponent;}
 	
 	UAudioComponent* GetAudioComponent() const { return AudioComponent;}
 	FVector GetLastCheckpointLocation() const { return LastCheckpointLocation; }

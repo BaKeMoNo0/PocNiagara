@@ -9,6 +9,7 @@
 #include "Gameplay/Player/Components/PlayerMovementComponent.h"
 #include "Gameplay/Player/Components/PlayerPingComponent.h"
 #include "Gameplay/Player/Components/PlayerSoundComponent.h"
+#include "Gameplay/Player/Components/SwarmAbilityComponent.h"
 
 
 void AMainPlayerController::BeginPlay() {
@@ -61,6 +62,7 @@ void AMainPlayerController::SetupInputComponent() {
 	
 	EIC->BindAction(FootstepAction, ETriggerEvent::Triggered, this, &AMainPlayerController::HandleFootstep);
 	
+	EIC->BindAction(CreatePlane, ETriggerEvent::Triggered, this, &AMainPlayerController::HandleCreatePlane);
 }
 
 
@@ -74,6 +76,12 @@ void AMainPlayerController::InitWidget() {
 			MainMenuWidget->SetVisibility(ESlateVisibility::Visible);
 		}
 	}
+}
+
+void AMainPlayerController::HandleCreatePlane() {
+	if (!ControlledCharacter) return;
+    	
+	ControlledCharacter->GetSwarmAbilityComponent()->TrySpawnPlane(ControlledCharacter);
 }
 
 
@@ -167,7 +175,7 @@ void AMainPlayerController::HandleFootstep(const FInputActionValue& Value) {
 	const float Axis = Value.Get<float>();
 	if (FMath::IsNearlyZero(Axis)) return;
 	
-	ControlledCharacter->TrySpawnFootStep(Axis < 0.f);
+	ControlledCharacter->GetSwarmAbilityComponent()->TrySpawnFootStep(ControlledCharacter, Axis < 0.f);
 }
 
 //

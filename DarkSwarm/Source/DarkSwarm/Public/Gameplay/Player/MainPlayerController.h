@@ -39,6 +39,7 @@ protected:
 	void AdjustPingDistance(const FInputActionValue& Value);
 	
 	void InitWidget();
+	void HandleCreatePlane();
 
 	// ===== Crowd =====
 	UFUNCTION()
@@ -96,4 +97,7 @@ protected:
 	
 	UPROPERTY(EditAnywhere, Category = Input)
 	UInputAction *FootstepAction;
+	
+	UPROPERTY(EditAnywhere, Category = Input)
+	UInputAction *CreatePlane;
 };

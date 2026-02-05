@@ -5,10 +5,10 @@
 #include "Core/DarkSwarmGameMode.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Gameplay/Player/Components/PlayerInteractionComponent.h"
-#include "Gameplay/Swarm/SwarmPlatform.h"
 #include "Gameplay/Player/Components/PlayerMovementComponent.h"
 #include "Gameplay/Player/Components/PlayerPingComponent.h"
 #include "Gameplay/Player/Components/PlayerSoundComponent.h"
+#include "Gameplay/Player/Components/SwarmAbilityComponent.h"
 
 APlayerCharacter::APlayerCharacter() {
 	PrimaryActorTick.bCanEverTick = false;
@@ -56,6 +56,8 @@ APlayerCharacter::APlayerCharacter() {
 	PlayerPingComponent = CreateDefaultSubobject<UPlayerPingComponent>(TEXT("PlayerPingComp"));
 	PlayerSoundComponent = CreateDefaultSubobject<UPlayerSoundComponent>(TEXT("PlayerSoundComp"));
 	PlayerInteractionComponent = CreateDefaultSubobject<UPlayerInteractionComponent>(TEXT("PlayerInteractionComp"));
+	SwarmAbilityComponent = CreateDefaultSubobject<USwarmAbilityComponent>(TEXT("SwarmAbilityComp"));
+	
 }
 
 
@@ -66,38 +68,6 @@ void APlayerCharacter::BeginPlay() {
 }
 
 
-void APlayerCharacter::TrySpawnFootStep(bool bIsLeftFoot) {
-	//if (bIsLeftFoot != bExpectLeftFoot) return;
-
-	if (!FootstepActorClass) return;
-
-	const float CapsuleHalfHeight = GetCapsuleComponent()->GetScaledCapsuleHalfHeight();
-
-	FVector SpawnLocation = GetActorLocation();
-	SpawnLocation.Z -= CapsuleHalfHeight + 5.f;
-
-	SpawnLocation += GetActorForwardVector() * ForwardOffset;
-	SpawnLocation += GetActorRightVector() * (bIsLeftFoot ? -SideOffset : SideOffset);
-	
-	if (bIsLeftFoot) 
-		PlayAnimMontage(AnimStrideFootL, 0.4);
-	else 
-		PlayAnimMontage(AnimStrideFootR, 0.4);
-	
-	LaunchCharacter(
-		GetActorForwardVector() * StepImpulse,
-		false,
-		false
-	);
-	
-	GetWorld()->SpawnActor<ASwarmPlatform>(
-		FootstepActorClass,
-		SpawnLocation,	
-		FRotator::ZeroRotator
-	);
-	
-	bExpectLeftFoot = !bExpectLeftFoot;
-}
 
 void APlayerCharacter::Die() {
 	if (bIsDead) return;
